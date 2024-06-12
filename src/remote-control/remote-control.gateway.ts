@@ -6,10 +6,13 @@ import {
   OnGatewayInit,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { RemoteControlService } from './remote-control.service';
 import { Roles } from 'nest-keycloak-connect';
+import { RemoteControlService } from './remote-control.service';
+import { UseGuards } from '@nestjs/common';
+import { RoleGuard, AuthGuard } from 'nest-keycloak-connect';
 
 @WebSocketGateway()
 export class RemoteControlGateway
@@ -20,10 +23,9 @@ export class RemoteControlGateway
 
   constructor(private readonly remoteControlService: RemoteControlService) {}
 
-  afterInit(_server: Server) {
-    /* console.log('WebSocket initialized'); */
-  }
+  afterInit(_server: Server) {}
 
+  @UseGuards(AuthGuard)
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
   }
@@ -32,9 +34,13 @@ export class RemoteControlGateway
     console.log('Client disconnected:', client.id);
   }
 
-  @SubscribeMessage('control')
+  @UseGuards(RoleGuard)
   @Roles({ roles: ['admin'] })
-  handleControl(@MessageBody() data: string): void {
+  @SubscribeMessage('control')
+  handleControl(
+    @MessageBody() data: string,
+    @ConnectedSocket() client: Socket,
+  ): void {
     this.remoteControlService.handleControl(data);
   }
 }

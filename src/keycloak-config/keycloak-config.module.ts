@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { KeycloakConfigService } from './keycloak-config.service';
 import { ConfigModule } from '@nestjs/config';
 
+@Global()
 @Module({
   providers: [KeycloakConfigService],
   exports: [KeycloakConfigService],

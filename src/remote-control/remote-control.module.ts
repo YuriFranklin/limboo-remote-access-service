@@ -6,5 +6,6 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   providers: [RemoteControlGateway, RemoteControlService],
   imports: [AuthModule],
+  exports: [RemoteControlGateway, RemoteControlService],
 })
 export class RemoteControlModule {}
