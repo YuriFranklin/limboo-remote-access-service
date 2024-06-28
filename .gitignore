@@ -398,3 +398,12 @@ Temporary Items
 dist
 .webpack
 .serverless/**/*.zip
+
+#Dev database file
+remote_access
+
+#Graphql auto generated schema
+schema.gql
+
+#Rest Api Tests
+*.http
