@@ -33,8 +33,8 @@ export class SessionService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      this.kvSessions = await this.kvStore('KV_sessions');
-      this.kvDevices = await this.kvStore('KV_devices');
+      this.kvSessions = await this.kvStore('sessions');
+      this.kvDevices = await this.kvStore('devices');
     } catch (error) {
       console.error('Failed to initialize kvs on sessions module:', error);
     }

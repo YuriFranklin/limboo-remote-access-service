@@ -406,3 +406,6 @@ schema.gql
 
 #Rest Api Tests
 *.http
+
+Infra secrets
+/infra/secret.yml

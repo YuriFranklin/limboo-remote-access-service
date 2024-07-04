@@ -30,7 +30,7 @@ export class DeviceService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      this.kvDevices = await this.kvStore('KV_devices');
+      this.kvDevices = await this.kvStore('devices');
     } catch (error) {
       console.error('Failed to initialize kvDevices:', error);
     }

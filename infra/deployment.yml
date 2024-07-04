@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: limboo
+  name: limbo-update-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: limbo-update-server
+  template:
+    metadata:
+      labels:
+        app: limbo-update-server
+    spec:
+      containers:
+        - name: limbo-update-server
+          image: registry.yuri.dev.br/limboo-update-server:1.0.4
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: limboo-update-server-volume
+              mountPath: /app/files
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-update-server-secret
+                  key: JWT_SECRET
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-update-server-secret
+                  key: KEYCLOAK_REALM
+            - name: KEYCLOAK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-update-server-secret
+                  key: KEYCLOAK_URL
+            - name: KEYCLOAK_CLIENT
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-update-server-secret
+                  key: KEYCLOAK_CLIENT
+      volumes:
+        - name: limboo-update-server-volume
+          persistentVolumeClaim:
+            claimName: limboo-update-server-pvc
+      imagePullSecrets:
+        - name: registry-secret

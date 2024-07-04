@@ -1,6 +1,6 @@
 services:
-  api:
-    container_name: limboo_remote_acess_api
+  limboo_remote_access_api:
+    container_name: limboo_remote_access_api
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,11 +18,11 @@ services:
       NATS_HOSTNAME: nats
       NATS_PORT: 4222
     command: ['sh', '-c', 'npm install && npm run start:dev']
-    networks:
-      - limboo
     depends_on:
       - database
       - nats
+    networks:
+      - limboo
 
   database:
     image: postgres:13
@@ -39,11 +39,11 @@ services:
     image: bitnami/nats:latest
     ports:
       - 4222:4222
-    networks:
-      - limboo
     environment:
       NATS_EXTRA_ARGS: -js
+    networks:
+      - limboo
 
 networks:
   limboo:
-    driver: bridge
+    external: true
