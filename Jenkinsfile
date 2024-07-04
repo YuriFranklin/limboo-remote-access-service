@@ -23,8 +23,8 @@ pipeline {
         }
         stage('Update Deployment File') {
             environment {
-                GIT_EMAIL = "yuri_franklin@hotmail.com"
-                GIT_REPO_NAME = "limboo-updater-service"
+                GIT_EMAIL = "yurifranklin98@gmail.com"
+                GIT_REPO_NAME = "limboo-remote-access-service"
                 GIT_USER_NAME = "yurifranklin"
                 GITHUB_TOKEN = credentials('GITHUB_TOKEN')
             }
