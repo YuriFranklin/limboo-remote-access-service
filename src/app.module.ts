@@ -7,6 +7,7 @@ import { DeviceModule } from './device/device.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { SessionModule } from './session/session.module';
 import { NatsModule } from './nats/nats.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -29,6 +30,15 @@ import { NatsModule } from './nats/nats.module';
     DeviceModule,
     SessionModule,
     NatsModule.forRoot([{ name: 'KEYVALUE_DEVICES', storeName: 'devices' }]),
+    ClientsModule.register([
+      {
+        name: 'REMOTE_ACCESS_SERVICE',
+        transport: Transport.NATS,
+        options: {
+          servers: [`${process.env.NATS_HOSTNAME}:${process.env.NATS_PORT}`],
+        },
+      },
+    ]),
   ],
   providers: [],
 })
