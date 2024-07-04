@@ -2,49 +2,72 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: limboo
-  name: limbo-update-server-deployment
+  name: limboo-remote-access-service-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: limbo-update-server
+      app: limboo-remote-access-service
   template:
     metadata:
       labels:
-        app: limbo-update-server
+        app: limboo-remote-access-service
     spec:
       containers:
-        - name: limbo-update-server
-          image: registry.yuri.dev.br/limboo-update-server:1.0.4
+        - name: limboo-remote-access-service
+          image: registry.yuri.dev.br/limboo-remote-access-service:latest
           ports:
             - containerPort: 3000
-          volumeMounts:
-            - name: limboo-update-server-volume
-              mountPath: /app/files
           env:
-            - name: JWT_SECRET
+            - name: KEYCLOAK_AUTH_SERVER_URL
               valueFrom:
                 secretKeyRef:
-                  name: limboo-update-server-secret
-                  key: JWT_SECRET
+                  name: limboo-remote-access-service-secrets
+                  key: KEYCLOAK_AUTH_SERVER_URL
             - name: KEYCLOAK_REALM
               valueFrom:
                 secretKeyRef:
-                  name: limboo-update-server-secret
+                  name: limboo-remote-access-service-secrets
                   key: KEYCLOAK_REALM
-            - name: KEYCLOAK_URL
+            - name: KEYCLOAK_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: limboo-update-server-secret
-                  key: KEYCLOAK_URL
-            - name: KEYCLOAK_CLIENT
+                  name: limboo-remote-access-service-secrets
+                  key: KEYCLOAK_CLIENT_ID
+            - name: KEYCLOAK_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: limboo-update-server-secret
-                  key: KEYCLOAK_CLIENT
-      volumes:
-        - name: limboo-update-server-volume
-          persistentVolumeClaim:
-            claimName: limboo-update-server-pvc
+                  name: limboo-remote-access-service-secrets
+                  key: KEYCLOAK_SECRET
+            - name: PG_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: PG_HOSTNAME
+            - name: PG_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: PG_USER_NAME
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: PG_PASSWORD
+            - name: PG_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: PG_PORT
+            - name: NATS_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: NATS_HOSTNAME
+            - name: NATS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: NATS_PORT
       imagePullSecrets:
         - name: registry-secret
