@@ -5,7 +5,10 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { SpecsInput } from './specs.input';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class UpdateDeviceInput {
@@ -27,15 +30,24 @@ export class UpdateDeviceInput {
   @IsOptional()
   mac: string;
 
+  @Field()
+  @IsString()
+  @IsNotEmpty({ message: 'Cannot be empty.' })
+  ownerId: string;
+
   @Field(() => [String])
   @IsArray()
-  @IsNotEmpty({ message: 'Owners ID array cannot be empty.' })
-  @IsOptional()
-  ownersId: string[];
+  coOwnersId: string[];
 
   @Field()
   @IsBoolean()
   @IsNotEmpty({ message: 'Cannot be empty.' })
   @IsOptional()
   canHostConnections: boolean;
+
+  @Field(() => SpecsInput)
+  @ValidateNested()
+  @Type(() => SpecsInput)
+  @IsOptional()
+  specs: SpecsInput;
 }

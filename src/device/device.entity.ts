@@ -6,11 +6,19 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Specs } from './specs.entity';
+
+export type CachedDevice = {
+  status: DeviceStatus;
+  updatedAt: Date;
+  retries: number;
+};
 
 export enum DeviceStatus {
   HOSTING = 'hosting',
   AVAILABLE = 'available',
   OFFLINE = 'offline',
+  NOT_RESPONDING = 'not responding',
 }
 
 registerEnumType(DeviceStatus, {
@@ -25,26 +33,35 @@ export class Device {
   id: string;
 
   @Column()
+  @Field()
   name: string;
 
   @Column()
+  @Field()
   loggedUserName: string;
 
   @Column()
+  @Field()
   mac: string;
 
+  @Column()
+  @Field()
+  ownerId: string;
+
   @Column({ type: 'json' })
-  ownersId: string[];
+  @Field(() => [String])
+  coOwnersId: string[];
 
   @Column()
+  @Field()
   canHostConnections: boolean;
 
-  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   @Field(() => Date)
   createdAt: Date;
 
   @UpdateDateColumn({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
@@ -53,4 +70,8 @@ export class Device {
 
   @Field(() => DeviceStatus, { nullable: true })
   status?: DeviceStatus;
+
+  @Column({ type: 'json', nullable: true })
+  @Field(() => Specs)
+  specs?: Specs;
 }

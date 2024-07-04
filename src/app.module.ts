@@ -6,8 +6,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { DeviceModule } from './device/device.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { SessionModule } from './session/session.module';
-import { NatsModule } from './nats/nats.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { LogModule } from './log/log.module';
+import { config } from './common/config/config';
 
 @Module({
   imports: [
@@ -15,30 +15,26 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'development' ? '.env' : null,
+      load: [() => config],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',
     }),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'remote_access',
+      type: 'postgres',
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT, 10) || 5432,
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
       synchronize: true,
       logging: false,
       entities: ['dist/**/*.entity{.ts,.js}'],
     }),
     DeviceModule,
     SessionModule,
-    NatsModule.forRoot([{ name: 'KEYVALUE_DEVICES', storeName: 'devices' }]),
-    ClientsModule.register([
-      {
-        name: 'REMOTE_ACCESS_SERVICE',
-        transport: Transport.NATS,
-        options: {
-          servers: [`${process.env.NATS_HOSTNAME}:${process.env.NATS_PORT}`],
-        },
-      },
-    ]),
+    LogModule,
   ],
   providers: [],
 })

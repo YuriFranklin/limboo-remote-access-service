@@ -1,7 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Device } from 'src/device/device.entity';
 import {
-  Column,
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -10,8 +7,17 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  Column,
 } from 'typeorm';
 import { BeforeUpdate } from 'typeorm';
+import { Device } from 'src/device/device.entity';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+
+export type CachedSession = {
+  hostId: string;
+  watchersId: string;
+  createdAt: Date;
+};
 
 @ObjectType()
 @Entity()
@@ -20,12 +26,12 @@ export class Session {
   @Field(() => ID)
   id: string;
 
-  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   @Field(() => Date)
   createdAt: Date;
 
   @UpdateDateColumn({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
@@ -49,7 +55,7 @@ export class Session {
   @Field(() => Device, { nullable: true })
   hostDevice: Device;
 
-  @Column({ nullable: true })
+  @Column()
   deviceId: string;
 
   @ManyToMany(() => Device, { eager: true, nullable: true })

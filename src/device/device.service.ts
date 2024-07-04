@@ -3,24 +3,69 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Device, DeviceStatus } from './device.entity';
 import { Repository } from 'typeorm';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
-import { KV } from 'nats';
+import { NATS_KV_STORE } from 'src/common/constants/constants';
+import { KV, KvOptions } from 'nats';
+import {
+  GetAllDeviceOutput,
+  DevicePagination,
+} from './dto/get-all-device.output';
 
 @Injectable()
-export class DeviceService {
+export class DeviceService implements OnModuleInit {
+  private kvDevices: KV;
+
   constructor(
     @InjectRepository(Device)
     private deviceRepository: Repository<Device>,
-    @Inject('KEYVALUE_DEVICES') private kvDevices: KV,
+    @Inject(NATS_KV_STORE)
+    private kvStore: (name: string, opts?: Partial<KvOptions>) => Promise<KV>,
   ) {}
 
-  async findAllDevices(): Promise<Device[]> {
-    return this.deviceRepository.find();
+  async onModuleInit() {
+    try {
+      this.kvDevices = await this.kvStore('KV_devices');
+    } catch (error) {
+      console.error('Failed to initialize kvDevices:', error);
+    }
+  }
+
+  async findAllDevices(
+    userId?: string,
+    options?: { skip?: number; take?: number },
+  ): Promise<GetAllDeviceOutput> {
+    const { skip = 0, take = 100 } = options || {};
+
+    const limit = Math.min(take, 1000);
+
+    let queryBuilder = this.deviceRepository
+      .createQueryBuilder('device')
+      .skip(skip)
+      .take(limit);
+
+    if (userId) {
+      queryBuilder = queryBuilder
+        .where('device.ownerId = :userId', { userId })
+        .orWhere('device.coOwnersId LIKE :userId', { userId: `%${userId}%` });
+    }
+
+    const [devices, totalCount] = await queryBuilder.getManyAndCount();
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const pagination: DevicePagination = {
+      limit,
+      totalCount,
+      totalPages,
+    };
+
+    return { devices, pagination };
   }
 
   async findDeviceById(id: string): Promise<Device> {
@@ -28,8 +73,10 @@ export class DeviceService {
 
     if (!device) throw new NotFoundException('Device not founded.');
 
-    const status = (await this.kvDevices.get(device.id)).json<DeviceStatus>();
-    device['status'] = status;
+    const storedOnKVDevice = (await this.kvDevices.get(device.id)).json<{
+      status: DeviceStatus;
+    }>();
+    device['status'] = storedOnKVDevice.status;
 
     return device;
   }

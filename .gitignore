@@ -74,7 +74,7 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-[Ll]og/
+*.[Ll]og/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -120,7 +120,6 @@ artifacts/
 *.tlh
 *.tmp
 *.tmp_proj
-*.log
 *.vspscc
 *.vssscc
 .builds

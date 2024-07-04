@@ -1,20 +1,33 @@
-version: '2'
 services:
   api:
     container_name: limboo_remote_acess_api
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - '3000:3000'
+    volumes:
+      - .:/api
     environment:
       NODE_ENV: development
-    command: ["npm", "run", "start:dev"]
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: remote_access
+      NATS_HOSTNAME: nats
+      NATS_PORT: 4222
+    command: ['sh', '-c', 'npm install && npm run start:dev']
     networks:
       - limboo
+    depends_on:
+      - database
+      - nats
 
   database:
     image: postgres:13
     ports:
-      - "5436:5432"
+      - '5436:5432'
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
@@ -28,6 +41,8 @@ services:
       - 4222:4222
     networks:
       - limboo
+    environment:
+      NATS_EXTRA_ARGS: -js
 
 networks:
   limboo:
