@@ -39,26 +39,31 @@ spec:
                 secretKeyRef:
                   name: limboo-remote-access-service-secrets
                   key: KEYCLOAK_SECRET
-            - name: PG_HOSTNAME
+            - name: POSTGRES_HOST
               valueFrom:
                 secretKeyRef:
                   name: limboo-remote-access-service-secrets
-                  key: PG_HOSTNAME
-            - name: PG_USER_NAME
+                  key: POSTGRES_HOST
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: limboo-remote-access-service-secrets
-                  key: PG_USER_NAME
-            - name: PG_PASSWORD
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: limboo-remote-access-service-secrets
-                  key: PG_PASSWORD
-            - name: PG_PORT
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_PORT
               valueFrom:
                 secretKeyRef:
                   name: limboo-remote-access-service-secrets
-                  key: PG_PORT
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: limboo-remote-access-service-secrets
+                  key: POSTGRES_DB
             - name: NATS_HOSTNAME
               valueFrom:
                 secretKeyRef:
