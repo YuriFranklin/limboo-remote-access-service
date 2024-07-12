@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { connect, JetStreamClient, KvOptions } from 'nats';
 import { NATS_JS, NATS_KV_STORE } from '../common/constants/constants';
+import { NatsService } from './nats.service';
 
 @Global()
 @Module({
@@ -25,7 +26,8 @@ import { NATS_JS, NATS_KV_STORE } from '../common/constants/constants';
       },
       inject: [NATS_JS],
     },
+    NatsService,
   ],
-  exports: [NATS_JS, NATS_KV_STORE],
+  exports: [NATS_JS, NATS_KV_STORE, NatsService],
 })
 export class NatsModule {}

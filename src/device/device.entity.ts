@@ -48,9 +48,9 @@ export class Device {
   @Field()
   ownerId: string;
 
-  @Column({ type: 'json' })
-  @Field(() => [String])
-  coOwnersId: string[];
+  @Column({ type: 'json', nullable: true })
+  @Field(() => [String], { nullable: true })
+  coOwnersId?: string[];
 
   @Column()
   @Field()

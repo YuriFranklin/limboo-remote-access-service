@@ -3,6 +3,7 @@ import {
   IsArray,
   IsBoolean,
   IsNotEmpty,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -31,17 +32,19 @@ export class CreateDeviceInput {
   @IsNotEmpty({ message: 'Cannot be empty.' })
   ownerId: string;
 
-  @Field(() => [String])
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
   @IsArray()
-  coOwnersId: string[];
+  coOwnersId?: string[];
 
   @Field()
   @IsBoolean()
   @IsNotEmpty({ message: 'Cannot be empty.' })
   canHostConnections: boolean;
 
-  @Field(() => SpecsInput)
+  @Field(() => SpecsInput, { nullable: true })
+  @IsOptional()
   @ValidateNested()
   @Type(() => SpecsInput)
-  specs: SpecsInput;
+  specs?: SpecsInput;
 }

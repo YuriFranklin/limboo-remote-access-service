@@ -31,7 +31,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: remote_access
     networks:
       - limboo
 
@@ -39,6 +38,8 @@ services:
     image: bitnami/nats:latest
     ports:
       - 4222:4222
+      - 8222:8222
+      - 6222:6222
     environment:
       NATS_EXTRA_ARGS: -js
     networks:

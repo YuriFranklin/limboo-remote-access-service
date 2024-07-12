@@ -11,6 +11,7 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
+import { NatsModule } from './nats/nats.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GraphQLModule } from '@nestjs/graphql';
       envFilePath: process.env.NODE_ENV === 'development' ? '.env' : null,
       load: [() => config],
     }),
+    NatsModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
