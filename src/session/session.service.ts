@@ -86,7 +86,9 @@ export class SessionService implements OnModuleInit {
   }
 
   async createSession(
-    data: Omit<CreateSessionInput, 'watchers'> & { watchers?: Device[] },
+    data: Omit<CreateSessionInput, 'watchers'> & {
+      watchers?: (Device & { isControlling: boolean })[];
+    },
   ): Promise<Session> {
     const cachedDevice = (
       await this.kvDevices.get(data.deviceId)
@@ -111,7 +113,11 @@ export class SessionService implements OnModuleInit {
     const sessionData = {
       hostId: data.deviceId,
       createdAt: savedSession.createdAt,
-      watchers: data.watchers?.map((watcher) => watcher.id) || [],
+      watchers:
+        data.watchers?.map((watcher) => ({
+          id: watcher.id,
+          isControlling: watcher.isControlling,
+        })) || [],
     };
 
     const sessionDataBytes = new TextEncoder().encode(
