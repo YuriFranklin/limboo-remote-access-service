@@ -8,8 +8,8 @@ import {
   ManyToMany,
   JoinTable,
   Column,
+  BeforeUpdate,
 } from 'typeorm';
-import { BeforeUpdate } from 'typeorm';
 import { Device } from 'src/device/device.entity';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 

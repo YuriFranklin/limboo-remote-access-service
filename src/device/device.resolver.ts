@@ -31,18 +31,21 @@ export class DeviceResolver {
   @Query(() => GetAllDeviceOutput)
   @Resource('device')
   async devices(@Args() args: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
-    const { limit = 100, offset = 0 } = args;
-
-    return this.deviceService.findAllDevices(args.userId, {
-      skip: offset,
-      take: limit,
-    });
+    return this.deviceService.findAllDevices(args);
   }
 
-  @Query(() => Device)
+  @Query(() => Device, { nullable: true })
   @Resource('device')
-  async device(@Args('id') id: string): Promise<Device> {
-    return this.deviceService.findDeviceById(id);
+  async device(
+    @Args('id', { nullable: true }) id?: string,
+    @Args('mac', { nullable: true }) mac?: string,
+  ): Promise<Device> {
+    if (id) {
+      return this.deviceService.findDeviceById(id);
+    } else if (mac) {
+      return this.deviceService.findDeviceByMac(mac);
+    }
+    throw new Error('Either id or mac must be provided');
   }
 
   @Roles({

@@ -1,4 +1,14 @@
-import { ArgsType, Field, Int } from '@nestjs/graphql';
+import { ArgsType, Field, Int, registerEnumType } from '@nestjs/graphql';
+import { Device } from '../device.entity';
+
+export enum OrderDirection {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+registerEnumType(OrderDirection, {
+  name: 'OrderDirection',
+});
 
 @ArgsType()
 export class GetAllDeviceInput {
@@ -10,4 +20,13 @@ export class GetAllDeviceInput {
 
   @Field({ nullable: true })
   userId?: string;
+
+  @Field({ nullable: true })
+  orderBy?: keyof Device;
+
+  @Field(() => OrderDirection, {
+    nullable: true,
+    defaultValue: OrderDirection.ASC,
+  })
+  orderDirection?: OrderDirection;
 }

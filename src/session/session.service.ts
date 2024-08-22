@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -17,8 +18,23 @@ import { UnavailableException } from '../common/exceptions/unavailable.exception
 import { Between } from 'typeorm';
 import { subDays } from 'date-fns';
 
+type KVSessionData = {
+  hostId: string;
+  createdAt: Date;
+  watchers: {
+    id: string;
+    isControlling: boolean;
+  }[];
+};
+
+type SessionWithKvData = Session & {
+  isLiving?: boolean;
+  watchers?: (Device & { isControlling: boolean })[];
+};
+
 @Injectable()
 export class SessionService implements OnModuleInit {
+  private readonly logger = new Logger(SessionService.name);
   private kvSessions: KV;
   private kvDevices: KV;
 
@@ -40,13 +56,99 @@ export class SessionService implements OnModuleInit {
     }
   }
 
+  private async attachSessionData(
+    sessions: Session[],
+  ): Promise<SessionWithKvData[]> {
+    if (sessions.length <= 1) {
+      return await Promise.all(
+        sessions.map(async (session) => {
+          try {
+            const sessionData = (
+              await this.kvSessions.get(session.id)
+            ).json<KVSessionData>();
+
+            if (sessionData) {
+              const watchers = session.watchers?.map((watcher) => {
+                const matchedWatcher = sessionData.watchers.find(
+                  (w) => w.id === watcher.id,
+                );
+                return {
+                  ...watcher,
+                  isControlling: matchedWatcher
+                    ? matchedWatcher.isControlling
+                    : false,
+                };
+              });
+
+              return {
+                ...session,
+                isLiving: true,
+                watchers,
+              } as SessionWithKvData;
+            }
+          } catch (error) {
+            this.logger.error(
+              `Failed to fetch session data for session ID ${session.id}: ${error.message}`,
+            );
+          }
+          return session as SessionWithKvData;
+        }),
+      );
+    }
+
+    const kvKeys: string[] = [];
+    const iterator = await this.kvSessions.keys();
+    for await (const key of iterator) {
+      kvKeys.push(key);
+    }
+
+    return await Promise.all(
+      sessions.map(async (session) => {
+        if (!kvKeys.includes(session.id)) {
+          return session as SessionWithKvData;
+        }
+
+        try {
+          const sessionData = (
+            await this.kvSessions.get(session.id)
+          ).json<KVSessionData>();
+
+          if (sessionData) {
+            const watchers = session.watchers?.map((watcher) => {
+              const matchedWatcher = sessionData.watchers.find(
+                (w) => w.id === watcher.id,
+              );
+              return {
+                ...watcher,
+                isControlling: matchedWatcher
+                  ? matchedWatcher.isControlling
+                  : false,
+              };
+            });
+
+            return {
+              ...session,
+              isLiving: true,
+              watchers,
+            } as SessionWithKvData;
+          }
+        } catch (error) {
+          this.logger.error(
+            `Failed to fetch session data for session ID ${session.id}: ${error.message}`,
+          );
+        }
+        return session as SessionWithKvData;
+      }),
+    );
+  }
+
   async findAllSessions(options?: {
     skip?: number;
     take?: number;
     startDate?: string;
     endDate?: string;
     deviceId?: string;
-  }): Promise<[Session[], number]> {
+  }): Promise<[SessionWithKvData[], number]> {
     const {
       skip = 0,
       take = 100,
@@ -74,25 +176,29 @@ export class SessionService implements OnModuleInit {
       where: whereClause,
     } as FindManyOptions<Session>);
 
-    return [sessions, totalCount];
+    const sessionsPassedOnKV = await this.attachSessionData(sessions);
+
+    return [sessionsPassedOnKV, totalCount];
   }
 
-  async findSessionById(id: string): Promise<Session> {
+  async findSessionById(id: string): Promise<SessionWithKvData> {
     const session = await this.sessionRepository.findOne({ where: { id } });
 
     if (!session) throw new NotFoundException('Session not found.');
 
-    return session;
+    const sessionPassedOnKV = await this.attachSessionData([session]);
+
+    return sessionPassedOnKV[0];
   }
 
   async createSession(
     data: Omit<CreateSessionInput, 'watchers'> & {
-      watchers?: (Device & { isControlling: boolean })[];
+      watchers?: (Device & { isControlling?: boolean })[];
     },
   ): Promise<Session> {
-    const cachedDevice = (
-      await this.kvDevices.get(data.deviceId)
-    ).json<CachedDevice>();
+    const cachedDeviceEntry = await this.kvDevices.get(data.deviceId);
+
+    const cachedDevice = cachedDeviceEntry.json<CachedDevice>();
 
     if (!cachedDevice)
       throw new NotFoundException(
@@ -104,6 +210,24 @@ export class SessionService implements OnModuleInit {
 
     const session = this.sessionRepository.create(data);
     const savedSession = await this.sessionRepository.save(session);
+
+    const deviceDataBytes = new TextEncoder().encode(
+      JSON.stringify({
+        ...cachedDevice,
+        hostingSessions: [...cachedDevice.hostingSessions, savedSession.id],
+      }),
+    );
+
+    await this.kvDevices.update(
+      data.deviceId,
+      deviceDataBytes,
+      cachedDeviceEntry.revision,
+    );
+
+    await this.jetStream.publish(
+      'device:kv:upsert',
+      Buffer.from(data.deviceId),
+    );
 
     if (!savedSession)
       throw new InternalServerErrorException(

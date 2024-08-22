@@ -3,7 +3,7 @@ import { SessionService } from './session.service';
 import { CreateSessionInput } from './dto/create-session.input';
 import { Session } from './session.entity';
 import { UpdateSessionInput } from './dto/update-session.input';
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { Logger, NotFoundException, UseGuards } from '@nestjs/common';
 import {
   AuthGuard,
   RoleGuard,
@@ -20,11 +20,14 @@ import { subDays } from 'date-fns';
 import { LogService } from 'src/log/log.service';
 import { ConfigService } from '@nestjs/config';
 import { EventType, LogLevel } from 'src/log/log.entity';
+import { GetSessionOutput } from './dto/get-session-output';
 
 @Resolver('Session')
 @UseGuards(AuthGuard, RoleGuard)
 @Resource('session')
 export class SessionResolver {
+  private readonly logger = new Logger(SessionResolver.name);
+
   constructor(
     private sessionService: SessionService,
     private deviceService: DeviceService,
@@ -77,9 +80,9 @@ export class SessionResolver {
     };
   }
 
-  @Query(() => Session)
+  @Query(() => GetSessionOutput)
   @Resource('session')
-  async session(@Args('id') id: string): Promise<Session> {
+  async session(@Args('id') id: string): Promise<GetSessionOutput> {
     return this.sessionService.findSessionById(id);
   }
 
@@ -95,12 +98,24 @@ export class SessionResolver {
     const { deviceId, watchers, ...rest } = data;
     const sessionData: CreateSessionInput = { deviceId, ...rest };
 
-    let devices: Device[] = [];
+    let devices: (Device & { isControlling: boolean })[] = [];
     if (watchers && watchers.length > 0) {
       devices = await Promise.all(
-        watchers.map((id) => this.deviceService.findDeviceById(id)),
+        watchers.map(async (watcher) => {
+          try {
+            const device = await this.deviceService.findDeviceById(watcher.id);
+            return { ...device, isControlling: watcher.isControlling };
+          } catch (error) {
+            this.logger.error(
+              `Error fetching device with ID ${watcher.id}: ${error.message}`,
+            );
+            return null;
+          }
+        }),
       );
     }
+
+    devices = devices.filter((device) => device !== null);
 
     const createdSession = await this.sessionService.createSession({
       ...sessionData,
@@ -138,12 +153,24 @@ export class SessionResolver {
       throw new NotFoundException('Session not found');
     }
 
-    let devices: Device[] = [];
+    let devices: (Device & { isControlling: boolean })[] = [];
     if (watchers && watchers.length > 0) {
       devices = await Promise.all(
-        watchers.map((id) => this.deviceService.findDeviceById(id)),
+        watchers.map(async (watcher) => {
+          try {
+            const device = await this.deviceService.findDeviceById(watcher.id);
+            return { ...device, isControlling: watcher.isControlling };
+          } catch (error) {
+            this.logger.error(
+              `Error fetching device with ID ${watcher.id}: ${error.message}`,
+            );
+            return null;
+          }
+        }),
       );
     }
+
+    devices = devices.filter((device) => device !== null);
 
     const payload = await this.sessionService.updateSession(id, {
       ...data,

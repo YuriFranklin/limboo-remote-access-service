@@ -12,6 +12,10 @@ export type CachedDevice = {
   status: DeviceStatus;
   updatedAt: Date;
   retries: number;
+  ip?: string;
+  iddle?: Date;
+  socketIds?: string[];
+  hostingSessions?: string[];
 };
 
 export enum DeviceStatus {
@@ -19,6 +23,7 @@ export enum DeviceStatus {
   AVAILABLE = 'available',
   OFFLINE = 'offline',
   NOT_RESPONDING = 'not responding',
+  UNKNOWN = 'unknown',
 }
 
 registerEnumType(DeviceStatus, {
@@ -40,7 +45,7 @@ export class Device {
   @Field()
   loggedUserName: string;
 
-  @Column()
+  @Column({ unique: true })
   @Field()
   mac: string;
 

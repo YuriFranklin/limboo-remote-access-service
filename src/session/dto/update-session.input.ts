@@ -1,10 +1,11 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { WatcherInput } from './watcher.input';
 
 @InputType()
 export class UpdateSessionInput {
   @Field({ nullable: true })
   duration?: string;
 
-  @Field(() => [String], { nullable: true })
-  watchers?: string[];
+  @Field(() => [WatcherInput], { nullable: true })
+  watchers?: WatcherInput[];
 }

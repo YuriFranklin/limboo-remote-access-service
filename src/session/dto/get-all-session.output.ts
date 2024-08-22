@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Session } from '../session.entity';
+import { GetSessionOutput } from './get-session-output';
 
 @ObjectType()
 class SessionPagination {
@@ -24,8 +24,8 @@ class Criterias {
 
 @ObjectType()
 export class GetAllSessionOutput {
-  @Field(() => [Session])
-  sessions: Session[];
+  @Field(() => GetSessionOutput)
+  sessions: GetSessionOutput[];
 
   @Field(() => SessionPagination)
   pagination: SessionPagination;

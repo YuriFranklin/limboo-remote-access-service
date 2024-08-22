@@ -12,10 +12,8 @@ import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
 import { NATS_KV_STORE } from 'src/common/constants/constants';
 import { KV, KvOptions } from 'nats';
-import {
-  GetAllDeviceOutput,
-  DevicePagination,
-} from './dto/get-all-device.output';
+import { GetAllDeviceOutput } from './dto/get-all-device.output';
+import { GetAllDeviceInput, OrderDirection } from './dto/get-all-device.input';
 
 @Injectable()
 export class DeviceService implements OnModuleInit {
@@ -36,36 +34,99 @@ export class DeviceService implements OnModuleInit {
     }
   }
 
-  async findAllDevices(
-    userId?: string,
-    options?: { skip?: number; take?: number },
-  ): Promise<GetAllDeviceOutput> {
-    const { skip = 0, take = 100 } = options || {};
+  async findAllDevices({
+    limit = 100,
+    offset = 0,
+    orderBy = 'createdAt',
+    orderDirection = OrderDirection.ASC,
+    userId,
+  }: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
+    const skip = offset || 0;
+    const take = Math.min(limit || 100, 1000);
 
-    const limit = Math.min(take, 1000);
+    let devices: Device[];
+    let totalCount: number;
 
-    let queryBuilder = this.deviceRepository
-      .createQueryBuilder('device')
-      .skip(skip)
-      .take(limit);
+    if (orderBy === 'status') {
+      devices = await this.deviceRepository
+        .createQueryBuilder('device')
+        .where(
+          userId
+            ? 'device.ownerId = :userId OR device.coOwnersId LIKE :userId'
+            : '1=1',
+          { userId },
+        )
+        .getMany();
 
-    if (userId) {
-      queryBuilder = queryBuilder
-        .where('device.ownerId = :userId', { userId })
-        .orWhere('device.coOwnersId LIKE :userId', { userId: `%${userId}%` });
+      // Fetch status for each device from KV store
+      devices = await Promise.all(
+        devices.map(async (device) => {
+          try {
+            const storedOnKVDevice = (
+              await this.kvDevices.get(device.mac)
+            ).json<{
+              status: DeviceStatus;
+            }>();
+            device['status'] = storedOnKVDevice.status ?? DeviceStatus.UNKNOWN;
+          } catch (e) {
+            device['status'] = DeviceStatus.UNKNOWN;
+          }
+          return device;
+        }),
+      );
+
+      // Sort devices by status
+      devices.sort((a, b) => {
+        if (orderDirection === 'ASC') {
+          return a.status.localeCompare(b.status);
+        } else {
+          return b.status.localeCompare(a.status);
+        }
+      });
+
+      totalCount = devices.length;
+      devices = devices.slice(skip, skip + take);
+    } else {
+      const [result, count] = await this.deviceRepository
+        .createQueryBuilder('device')
+        .where(
+          userId
+            ? 'device.ownerId = :userId OR device.coOwnersId LIKE :userId'
+            : '1=1',
+          { userId },
+        )
+        .orderBy(`device.${orderBy}`, orderDirection)
+        .skip(skip)
+        .take(take)
+        .getManyAndCount();
+
+      devices = await Promise.all(
+        result.map(async (device) => {
+          try {
+            const storedOnKVDevice = (
+              await this.kvDevices.get(device.mac)
+            ).json<{
+              status: DeviceStatus;
+            }>();
+            device['status'] = storedOnKVDevice.status ?? DeviceStatus.UNKNOWN;
+          } catch (e) {
+            device['status'] = DeviceStatus.UNKNOWN;
+          }
+          return device;
+        }),
+      );
+
+      totalCount = count;
     }
 
-    const [devices, totalCount] = await queryBuilder.getManyAndCount();
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    const pagination: DevicePagination = {
-      limit,
-      totalCount,
-      totalPages,
+    return {
+      devices,
+      pagination: {
+        limit: take,
+        totalCount,
+        totalPages: Math.ceil(totalCount / take),
+      },
     };
-
-    return { devices, pagination };
   }
 
   async findDeviceById(id: string): Promise<Device> {
@@ -73,7 +134,20 @@ export class DeviceService implements OnModuleInit {
 
     if (!device) throw new NotFoundException('Device not founded.');
 
-    const storedOnKVDevice = (await this.kvDevices.get(device.id)).json<{
+    const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
+      status: DeviceStatus;
+    }>();
+    device['status'] = storedOnKVDevice.status;
+
+    return device;
+  }
+
+  async findDeviceByMac(mac: string): Promise<Device> {
+    const device = await this.deviceRepository.findOne({ where: { mac } });
+
+    if (!device) throw new NotFoundException('Device not founded.');
+
+    const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
       status: DeviceStatus;
     }>();
     device['status'] = storedOnKVDevice.status;

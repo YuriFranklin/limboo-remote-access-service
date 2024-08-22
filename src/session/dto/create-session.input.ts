@@ -1,10 +1,11 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { WatcherInput } from './watcher.input';
 
 @InputType()
 export class CreateSessionInput {
   @Field()
   deviceId: string;
 
-  @Field(() => [String], { nullable: true })
-  watchers?: string[];
+  @Field(() => [WatcherInput], { nullable: true })
+  watchers?: WatcherInput[];
 }
