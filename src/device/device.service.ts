@@ -13,7 +13,11 @@ import { UpdateDeviceInput } from './dto/update-device.input';
 import { NATS_KV_STORE } from 'src/common/constants/constants';
 import { KV, KvOptions } from 'nats';
 import { GetAllDeviceOutput } from './dto/get-all-device.output';
-import { GetAllDeviceInput, OrderDirection } from './dto/get-all-device.input';
+import {
+  DeviceOrderBy,
+  GetAllDeviceInput,
+  OrderDirection,
+} from './dto/get-all-device.input';
 
 @Injectable()
 export class DeviceService implements OnModuleInit {
@@ -37,7 +41,7 @@ export class DeviceService implements OnModuleInit {
   async findAllDevices({
     limit = 100,
     offset = 0,
-    orderBy = 'createdAt',
+    orderBy = DeviceOrderBy.CREATED_AT,
     orderDirection = OrderDirection.ASC,
     userId,
   }: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
@@ -47,7 +51,7 @@ export class DeviceService implements OnModuleInit {
     let devices: Device[];
     let totalCount: number;
 
-    if (orderBy === 'status') {
+    if (orderBy === DeviceOrderBy.STATUS) {
       devices = await this.deviceRepository
         .createQueryBuilder('device')
         .where(

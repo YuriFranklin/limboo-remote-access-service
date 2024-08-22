@@ -1,5 +1,19 @@
 import { ArgsType, Field, Int, registerEnumType } from '@nestjs/graphql';
-import { Device } from '../device.entity';
+
+export enum DeviceOrderBy {
+  ID = 'id',
+  NAME = 'name',
+  LOGGED_USER_NAME = 'loggedUserName',
+  MAC = 'mac',
+  OWNER_ID = 'ownerId',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  STATUS = 'status',
+}
+
+registerEnumType(DeviceOrderBy, {
+  name: 'DeviceOrderBy',
+});
 
 export enum OrderDirection {
   ASC = 'ASC',
@@ -21,8 +35,8 @@ export class GetAllDeviceInput {
   @Field({ nullable: true })
   userId?: string;
 
-  @Field({ nullable: true })
-  orderBy?: keyof Device;
+  @Field(() => DeviceOrderBy, { nullable: true })
+  orderBy?: DeviceOrderBy;
 
   @Field(() => OrderDirection, {
     nullable: true,
