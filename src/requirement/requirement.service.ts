@@ -62,6 +62,11 @@ export class RequirementService {
 
     await this.requirementRepository.update({ id }, preUpdatedRequirement);
 
+    await this.jetStream.publish(
+      'requirements:update',
+      preUpdatedRequirement.id,
+    );
+
     return preUpdatedRequirement;
   }
 
