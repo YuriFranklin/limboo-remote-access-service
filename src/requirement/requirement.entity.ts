@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 import {
   Column,
   CreateDateColumn,
@@ -60,7 +61,7 @@ export class Requirement {
   @Column()
   type: RequestTypes;
 
-  @Field(() => Object, { nullable: true })
+  @Field(() => GraphQLJSON)
   @Column({
     type: 'json',
     nullable: true,
