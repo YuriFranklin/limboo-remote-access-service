@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { RequestTypes } from '../requirement.entity';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class CreateRequirementInput {
@@ -19,8 +20,8 @@ export class CreateRequirementInput {
   @IsEnum(RequestTypes, { message: 'Type must be a valid RequestTypes value.' })
   type: RequestTypes;
 
-  @Field(() => Object, { nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
-  @IsObject({ message: 'Payload must be an object.' })
-  payload?: Record<string, any>;
+  @IsObject()
+  payload?: unknown;
 }
