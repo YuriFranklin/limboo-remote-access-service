@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { IsObject, IsOptional } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 import {
   Column,
@@ -61,7 +62,9 @@ export class Requirement {
   @Column()
   type: RequestTypes;
 
-  @Field(() => GraphQLJSON)
+  @Field(() => GraphQLJSON, { nullable: true })
+  @IsOptional()
+  @IsObject()
   @Column({
     type: 'json',
     nullable: true,

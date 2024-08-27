@@ -1,6 +1,10 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, registerEnumType } from '@nestjs/graphql';
 import { IsEnum } from 'class-validator';
 import { RequestStatus } from '../requirement.entity';
+
+registerEnumType(RequestStatus, {
+  name: 'RequestStatus',
+});
 
 @InputType()
 export class UpdateRequirementInput {
