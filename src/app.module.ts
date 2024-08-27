@@ -12,6 +12,7 @@ import {
 } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { NatsModule } from './nats/nats.module';
+import { RequirementModule } from './requirement/requirement.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NatsModule } from './nats/nats.module';
         federation: 2,
       },
     }),
+    RequirementModule,
   ],
   providers: [],
 })
