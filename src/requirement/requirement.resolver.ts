@@ -1,8 +1,9 @@
 import { Logger, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import {
   AuthenticatedUser,
   AuthGuard,
+  Resource,
   RoleGuard,
   RoleMatchingMode,
   Roles,
@@ -25,6 +26,12 @@ export class RequirementResolver {
     private readonly logService: LogService,
     private readonly configService: ConfigService,
   ) {}
+
+  @Query(() => Requirement)
+  @Resource('requirements')
+  async requirement(@Args('id') id: string): Promise<Requirement> {
+    return this.requirementService.findRequirementById(id);
+  }
 
   @Roles({
     roles: ['realm:can_use_remote_connections'],
