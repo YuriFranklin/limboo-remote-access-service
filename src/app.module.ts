@@ -42,6 +42,7 @@ import { RequirementModule } from './requirement/requirement.module';
       autoSchemaFile: {
         federation: 2,
       },
+      playground: false,
     }),
     RequirementModule,
   ],

@@ -13,6 +13,7 @@ import { NATS_JS } from 'src/common/constants/constants';
 import { JetStreamClient } from 'nats';
 import { CreateRequirementInput } from './dto/create-requirement.input';
 import { UpdateRequirementInput } from './dto/update-requirement.input';
+import { NatsService } from 'src/nats/nats.service';
 
 @Injectable()
 export class RequirementService {
@@ -23,7 +24,16 @@ export class RequirementService {
     private requirementRepository: Repository<Requirement>,
     @Inject(NATS_JS)
     private jetStream: JetStreamClient,
+    private readonly natsService: NatsService,
   ) {}
+
+  async onModuleInit() {
+    await this.natsService.ensureStreamExists('requirements-stream', [
+      'requirements:create',
+      'requirements:update',
+      'requirements:created',
+    ]);
+  }
 
   async createRequirement(
     data: CreateRequirementInput,

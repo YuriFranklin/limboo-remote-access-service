@@ -62,7 +62,6 @@ export class DeviceService implements OnModuleInit {
         )
         .getMany();
 
-      // Fetch status for each device from KV store
       devices = await Promise.all(
         devices.map(async (device) => {
           try {
@@ -79,7 +78,6 @@ export class DeviceService implements OnModuleInit {
         }),
       );
 
-      // Sort devices by status
       devices.sort((a, b) => {
         if (orderDirection === 'ASC') {
           return a.status.localeCompare(b.status);
@@ -112,7 +110,7 @@ export class DeviceService implements OnModuleInit {
             ).json<{
               status: DeviceStatus;
             }>();
-            device['status'] = storedOnKVDevice.status ?? DeviceStatus.UNKNOWN;
+            device['status'] = storedOnKVDevice.status ?? DeviceStatus.OFFLINE;
           } catch (e) {
             device['status'] = DeviceStatus.UNKNOWN;
           }
