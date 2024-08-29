@@ -15,19 +15,16 @@ export class UpdateDeviceInput {
   @Field()
   @IsString()
   @IsNotEmpty({ message: 'Cannot be empty.' })
-  @IsOptional()
   name: string;
 
   @Field()
   @IsString()
   @IsNotEmpty({ message: 'Cannot be empty.' })
-  @IsOptional()
-  loggedUserName: string;
+  loggedUserName?: string;
 
   @Field()
   @IsString()
   @IsNotEmpty({ message: 'Cannot be empty.' })
-  @IsOptional()
   mac: string;
 
   @Field()
@@ -37,17 +34,17 @@ export class UpdateDeviceInput {
 
   @Field(() => [String])
   @IsArray()
-  coOwnersId: string[];
+  @IsOptional()
+  coOwnersId?: string[];
 
   @Field()
   @IsBoolean()
   @IsNotEmpty({ message: 'Cannot be empty.' })
-  @IsOptional()
   canHostConnections: boolean;
 
   @Field(() => SpecsInput)
   @ValidateNested()
   @Type(() => SpecsInput)
   @IsOptional()
-  specs: SpecsInput;
+  specs?: SpecsInput;
 }

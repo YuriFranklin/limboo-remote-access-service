@@ -10,14 +10,15 @@ import { Device, DeviceStatus } from './device.entity';
 import { Repository } from 'typeorm';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
-import { NATS_KV_STORE } from 'src/common/constants/constants';
-import { KV, KvOptions } from 'nats';
+import { NATS_JS, NATS_KV_STORE } from 'src/common/constants/constants';
+import { JetStreamClient, KV, KvOptions } from 'nats';
 import { GetAllDeviceOutput } from './dto/get-all-device.output';
 import {
   DeviceOrderBy,
   GetAllDeviceInput,
   OrderDirection,
 } from './dto/get-all-device.input';
+import { NatsService } from 'src/nats/nats.service';
 
 @Injectable()
 export class DeviceService implements OnModuleInit {
@@ -28,13 +29,21 @@ export class DeviceService implements OnModuleInit {
     private deviceRepository: Repository<Device>,
     @Inject(NATS_KV_STORE)
     private kvStore: (name: string, opts?: Partial<KvOptions>) => Promise<KV>,
+    @Inject(NATS_JS)
+    private jetStream: JetStreamClient,
+    private readonly natsService: NatsService,
   ) {}
 
   async onModuleInit() {
     try {
       this.kvDevices = await this.kvStore('devices');
+
+      await this.natsService.ensureStreamExists('devices-stream', [
+        'devices:create',
+        'devices:update',
+      ]);
     } catch (error) {
-      console.error('Failed to initialize kvDevices:', error);
+      console.error('Failed to initialize device module:', error);
     }
   }
 
@@ -171,12 +180,15 @@ export class DeviceService implements OnModuleInit {
   }
 
   async updateDevice(id: string, data: UpdateDeviceInput) {
-    const device = await this.deviceRepository.update({ id }, { ...data });
+    const device = await this.deviceRepository.save({ ...data });
 
     if (!device) throw new NotFoundException('Device not founded.');
 
-    const deviceUpdated = this.deviceRepository.create({ ...device, ...data });
-    return deviceUpdated;
+    //const deviceUpdated = this.deviceRepository.create({ ...device, ...data });
+
+    await this.jetStream.publish('devices:update', device.id);
+
+    return device;
   }
 
   async deleteDevice(id: string): Promise<boolean> {
@@ -187,5 +199,16 @@ export class DeviceService implements OnModuleInit {
     }
 
     return false;
+  }
+
+  async addCoOwner(id: string, coOwnerId: string): Promise<void> {
+    const device = await this.findDeviceById(id);
+
+    if (!device) throw new NotFoundException('Device not founded.');
+
+    await this.updateDevice(id, {
+      ...device,
+      coOwnersId: [...device.coOwnersId, coOwnerId],
+    });
   }
 }
