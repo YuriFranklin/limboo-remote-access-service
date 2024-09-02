@@ -80,14 +80,22 @@ export class RequirementService {
     return preUpdatedRequirement;
   }
 
-  async findRequirementById(id: string): Promise<Requirement> {
+  async findRequirementById(
+    id: string,
+    user?: { sub: string; name?: string; email?: string },
+  ): Promise<Requirement> {
     const requirement = await this.requirementRepository.findOne({
       where: { id },
     });
 
     if (!requirement) throw new NotFoundException('Requirement not found.');
 
-    await this.jetStream.publish('requirements:update', requirement.id);
+    if (
+      user &&
+      requirement.ownerId !== user.sub &&
+      requirement.requesterId !== user.sub
+    )
+      throw new ForbiddenException('Not authorized.');
 
     return requirement;
   }

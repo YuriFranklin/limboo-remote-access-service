@@ -13,6 +13,7 @@ import {
 import { GraphQLModule } from '@nestjs/graphql';
 import { NatsModule } from './nats/nats.module';
 import { RequirementModule } from './requirement/requirement.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RequirementModule } from './requirement/requirement.module';
       playground: false,
     }),
     RequirementModule,
+    NotificationModule,
   ],
   providers: [],
 })

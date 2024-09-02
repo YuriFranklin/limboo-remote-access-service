@@ -7,6 +7,7 @@ import { LogModule } from 'src/log/log.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequirementService } from './requirement.service';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   providers: [RequirementResolver, RequirementService],
@@ -16,6 +17,8 @@ import { ConfigModule } from '@nestjs/config';
     NatsModule,
     LogModule,
     ConfigModule,
+    NotificationModule,
   ],
+  exports: [RequirementService],
 })
 export class RequirementModule {}

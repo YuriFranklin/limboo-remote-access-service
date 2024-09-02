@@ -15,6 +15,8 @@ import { LogService } from 'src/log/log.service';
 import { EventType, LogLevel } from 'src/log/log.entity';
 import { ConfigService } from '@nestjs/config';
 import { UpdateRequirementInput } from './dto/update-requirement.input';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationTypes } from 'src/notification/dto/create-notification.input';
 
 @Resolver('Requirements')
 @UseGuards(AuthGuard, RoleGuard)
@@ -25,12 +27,17 @@ export class RequirementResolver {
     private readonly requirementService: RequirementService,
     private readonly logService: LogService,
     private readonly configService: ConfigService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Query(() => Requirement)
   @Resource('requirements')
-  async requirement(@Args('id') id: string): Promise<Requirement> {
-    return this.requirementService.findRequirementById(id);
+  async requirement(
+    @Args('id') id: string,
+    @AuthenticatedUser()
+    user: { sub: string; name?: string; email?: string },
+  ): Promise<Requirement> {
+    return this.requirementService.findRequirementById(id, user);
   }
 
   @Roles({
@@ -56,6 +63,17 @@ export class RequirementResolver {
       operation: `${this.configService.get<string>('serviceName')}:requirement:create`,
       eventType: EventType.CREATE,
       userId: user.sub,
+    });
+
+    await this.notificationService.createNotification({
+      recipientId: requirement.ownerId,
+      type: NotificationTypes.REQUESTING_PERMISSION,
+      senderId: requirement.requesterId,
+      content:
+        'O usuário ${USER_FIRST_NAME} está solicitando permissão para usar o dispositivo ${DEVICE_NAME}. Autoriza?',
+      payload: {
+        requirementId: requirement.id,
+      },
     });
 
     return requirement;
