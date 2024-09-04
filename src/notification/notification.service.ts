@@ -23,7 +23,7 @@ export class NotificationService implements OnModuleInit {
 
   async createNotification(data: CreateNotificationInput): Promise<boolean> {
     try {
-      const dataStringfied = JSON.stringify({ teste: data.content });
+      const dataStringfied = JSON.stringify({ teste: 'batata' });
       const pubAck: PubAck = await this.jetStream.publish(
         'notifications:create',
         Buffer.from(dataStringfied).toString('base64'),
