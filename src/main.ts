@@ -14,7 +14,7 @@ async function bootstrap() {
       deserializer: {
         deserialize: (data: any) => {
           try {
-            console.log(data);
+            console.log(data.toString());
             return JSON.parse(data.toString());
           } catch (error) {
             throw new Error('Failed to parse JSON');
