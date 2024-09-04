@@ -66,11 +66,11 @@ export class RequirementResolver {
     });
 
     await this.notificationService.createNotification({
-      recipientId: requirement.ownerId,
+      recipientId: `${requirement.ownerId}`,
       type: NotificationTypes.REQUESTING_PERMISSION,
-      senderId: requirement.requesterId,
+      senderId: `${requirement.requesterId}`,
       payload: {
-        requirementId: requirement.id,
+        requirementId: `${requirement.id}`,
       },
     });
 
