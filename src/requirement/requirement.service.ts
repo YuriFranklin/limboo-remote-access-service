@@ -51,7 +51,10 @@ export class RequirementService {
         'An exception has occurred on server.',
       );
 
-    await this.jetStream.publish('requirements:create', savedRequirement.id);
+    await this.jetStream.publish(
+      'requirements:create',
+      JSON.stringify({ id: savedRequirement.id }),
+    );
 
     return savedRequirement;
   }
@@ -74,7 +77,7 @@ export class RequirementService {
 
     await this.jetStream.publish(
       'requirements:update',
-      preUpdatedRequirement.id,
+      JSON.stringify({ id: preUpdatedRequirement.id }),
     );
 
     return preUpdatedRequirement;
