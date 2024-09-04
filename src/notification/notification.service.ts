@@ -26,7 +26,7 @@ export class NotificationService implements OnModuleInit {
       const dataStringfied = JSON.stringify({ teste: 'batata' });
       const pubAck: PubAck = await this.jetStream.publish(
         'notifications:create',
-        Buffer.from(dataStringfied).toString('base64'),
+        dataStringfied,
       );
 
       if (pubAck.duplicate) return false;
