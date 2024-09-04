@@ -66,11 +66,13 @@ export class RequirementResolver {
     });
 
     await this.notificationService.createNotification({
-      recipientId: `${requirement.ownerId}`,
+      recipientId: requirement.ownerId,
       type: NotificationTypes.REQUESTING_PERMISSION,
-      senderId: `${requirement.requesterId}`,
+      senderId: requirement.requesterId,
+      content:
+        'O usuário ${USER_FIRST_NAME} está solicitando permissão para usar o dispositivo ${DEVICE_NAME}. Autoriza?',
       payload: {
-        requirementId: `${requirement.id}`,
+        requirementId: requirement.id,
       },
     });
 
