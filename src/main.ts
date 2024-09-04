@@ -11,6 +11,16 @@ async function bootstrap() {
     transport: Transport.NATS,
     options: {
       servers: [`nats://${process.env.NATS_HOSTNAME}:${process.env.NATS_PORT}`],
+      deserializer: {
+        deserialize: (data: any) => {
+          try {
+            console.log(data);
+            return JSON.parse(data.toString());
+          } catch (error) {
+            throw new Error('Failed to parse JSON');
+          }
+        },
+      },
     },
   });
 
