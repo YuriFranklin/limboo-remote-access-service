@@ -25,6 +25,10 @@ export class NotificationService implements OnModuleInit {
     try {
       const dataStringfied = JSON.stringify(data);
 
+      console.log(data);
+
+      console.log(dataStringfied);
+
       const pubAck: PubAck = await this.jetStream.publish(
         'notifications:create',
         dataStringfied,
