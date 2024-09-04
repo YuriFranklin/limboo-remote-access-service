@@ -27,7 +27,7 @@ export class NotificationService implements OnModuleInit {
 
       const pubAck: PubAck = await this.jetStream.publish(
         'notifications:create',
-        Buffer.from(dataStringfied),
+        dataStringfied,
       );
 
       if (pubAck.duplicate) return false;
