@@ -186,7 +186,10 @@ export class DeviceService implements OnModuleInit {
 
     //const deviceUpdated = this.deviceRepository.create({ ...device, ...data });
 
-    await this.jetStream.publish('devices:update', device.id);
+    await this.jetStream.publish(
+      'devices:update',
+      JSON.stringify({ id: device.id }),
+    );
 
     return device;
   }

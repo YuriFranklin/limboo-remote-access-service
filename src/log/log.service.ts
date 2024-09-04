@@ -26,7 +26,7 @@ export class LogService implements OnModuleInit {
 
       const pubAck: PubAck = await this.jetStream.publish(
         'log:create',
-        Buffer.from(logData),
+        logData,
       );
 
       if (pubAck.duplicate) return false;

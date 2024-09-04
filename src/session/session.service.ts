@@ -226,7 +226,7 @@ export class SessionService implements OnModuleInit {
 
     await this.jetStream.publish(
       'device:kv:upsert',
-      Buffer.from(data.deviceId),
+      JSON.stringify({ id: data.deviceId }),
     );
 
     if (!savedSession)
@@ -250,7 +250,10 @@ export class SessionService implements OnModuleInit {
 
     await this.kvSessions.put(savedSession.id, sessionDataBytes);
 
-    await this.jetStream.publish('sessions:create', session.id);
+    await this.jetStream.publish(
+      'sessions:create',
+      JSON.stringify({ id: session.id }),
+    );
 
     return savedSession;
   }
@@ -277,7 +280,10 @@ export class SessionService implements OnModuleInit {
 
   async closeSession(id: string): Promise<boolean> {
     try {
-      const pubAck: PubAck = await this.jetStream.publish('sessions:stop', id);
+      const pubAck: PubAck = await this.jetStream.publish(
+        'sessions:stop',
+        JSON.stringify({ id }),
+      );
 
       if (pubAck.duplicate) return false;
 
