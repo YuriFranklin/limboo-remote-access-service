@@ -39,6 +39,8 @@ export class RequirementService {
     data: CreateRequirementInput,
     user: { sub: string; name?: string; email?: string },
   ): Promise<Requirement> {
+    console.log(user);
+
     const requirement = this.requirementRepository.create({
       ...data,
       requesterId: user.sub,
