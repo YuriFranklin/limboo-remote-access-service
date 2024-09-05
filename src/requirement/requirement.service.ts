@@ -117,8 +117,9 @@ export class RequirementService {
       requirement.ownerId !== user.sub &&
       requirement.requesterId !== user.sub &&
       !user.realm_access.roles.includes('admin')
-    )
+    ) {
       throw new ForbiddenException('Not authorized.');
+    }
 
     return requirement;
   }

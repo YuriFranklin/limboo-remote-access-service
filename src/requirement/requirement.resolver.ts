@@ -56,8 +56,6 @@ export class RequirementResolver {
       realm_access?: { roles: string[] };
     },
   ): Promise<Requirement> {
-    console.log(user);
-
     const requirement = await this.requirementService.createRequirement(
       data,
       user,
