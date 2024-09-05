@@ -18,6 +18,7 @@ export class NotificationService implements OnModuleInit {
     await this.natsService.ensureStreamExists('notifications-stream', [
       'notifications:create',
       'notifications:update',
+      'notifications:created',
     ]);
   }
 

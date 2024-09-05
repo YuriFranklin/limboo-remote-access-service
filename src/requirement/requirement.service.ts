@@ -110,10 +110,7 @@ export class RequirementService {
       where: { id },
     });
 
-    if (!requirement) {
-      console.log('not found');
-      throw new NotFoundException('Requirement not found.');
-    }
+    if (!requirement) throw new NotFoundException('Requirement not found.');
 
     if (
       user &&
@@ -121,10 +118,9 @@ export class RequirementService {
       requirement.requesterId !== user.sub &&
       !user.realm_access.roles.includes('admin')
     ) {
-      console.log('not authorized');
       throw new ForbiddenException('Not authorized.');
     }
-    console.log(requirement);
+
     return requirement;
   }
 }

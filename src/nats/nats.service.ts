@@ -24,11 +24,11 @@ export class NatsService {
       const jsm: JetStreamManager = await this.jetStream.jetstreamManager();
       const streams = await jsm.streams.list().next();
 
-      const streamExists = streams.some(
+      const existingStream = streams.find(
         (stream) => stream.config.name === streamName,
       );
 
-      if (!streamExists) {
+      if (!existingStream) {
         this.logger.log(`Creating stream: ${streamName}`);
         const streamConfig: StreamConfig = {
           name: streamName,
@@ -57,7 +57,28 @@ export class NatsService {
         await jsm.streams.add(streamConfig);
         this.logger.log(`Stream created: ${streamName}`);
       } else {
-        this.logger.log(`Stream already exists: ${streamName}`);
+        const existingSubjects = existingStream.config.subjects || [];
+        const subjectsToAdd = subjects.filter(
+          (subject) => !existingSubjects.includes(subject),
+        );
+
+        if (subjectsToAdd.length > 0) {
+          this.logger.log(`Updating stream: ${streamName} with new subjects`);
+          const updatedSubjects = [...existingSubjects, ...subjectsToAdd];
+
+          const updatedConfig: StreamConfig = {
+            ...existingStream.config,
+            subjects: updatedSubjects,
+            ...configs,
+          };
+
+          await jsm.streams.update(streamName, updatedConfig);
+          this.logger.log(
+            `Stream updated: ${streamName} with subjects: ${updatedSubjects}`,
+          );
+        } else {
+          this.logger.log(`Stream already up-to-date: ${streamName}`);
+        }
       }
     } catch (error) {
       this.logger.error(
