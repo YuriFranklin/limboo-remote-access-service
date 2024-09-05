@@ -124,7 +124,7 @@ export class RequirementService {
       console.log('not authorized');
       throw new ForbiddenException('Not authorized.');
     }
-
+    console.log(requirement);
     return requirement;
   }
 }
