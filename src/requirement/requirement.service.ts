@@ -37,7 +37,12 @@ export class RequirementService {
 
   async createRequirement(
     data: CreateRequirementInput,
-    user: { sub: string; name?: string; email?: string },
+    user: {
+      sub: string;
+      name?: string;
+      email?: string;
+      realm_access?: { roles: string[] };
+    },
   ): Promise<Requirement> {
     const requirement = this.requirementRepository.create({
       ...data,
@@ -62,13 +67,22 @@ export class RequirementService {
   async updateRequirement(
     id: string,
     data: UpdateRequirementInput,
-    user?: { sub: string; name?: string; email?: string },
+    user?: {
+      sub: string;
+      name?: string;
+      email?: string;
+      realm_access?: { roles: string[] };
+    },
   ): Promise<Requirement> {
     const requirement = await this.findRequirementById(id);
 
     if (!requirement) throw new NotFoundException('Requirement not found.');
 
-    if (user && requirement.ownerId !== user.sub)
+    if (
+      user &&
+      requirement.ownerId !== user.sub &&
+      !user.realm_access.roles.includes('admin')
+    )
       throw new ForbiddenException('Not authorized.');
 
     const preUpdatedRequirement = { ...requirement, status: data.status };
@@ -85,7 +99,12 @@ export class RequirementService {
 
   async findRequirementById(
     id: string,
-    user?: { sub: string; name?: string; email?: string },
+    user?: {
+      sub: string;
+      name?: string;
+      email?: string;
+      realm_access?: { roles: string[] };
+    },
   ): Promise<Requirement> {
     const requirement = await this.requirementRepository.findOne({
       where: { id },
@@ -96,7 +115,8 @@ export class RequirementService {
     if (
       user &&
       requirement.ownerId !== user.sub &&
-      requirement.requesterId !== user.sub
+      requirement.requesterId !== user.sub &&
+      !user.realm_access.roles.includes('admin')
     )
       throw new ForbiddenException('Not authorized.');
 

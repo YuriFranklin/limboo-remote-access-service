@@ -49,7 +49,12 @@ export class RequirementResolver {
     @Args('data')
     data: CreateRequirementInput,
     @AuthenticatedUser()
-    user: { sub: string; name?: string; email?: string },
+    user: {
+      sub: string;
+      name?: string;
+      email?: string;
+      realm_access?: { roles: string[] };
+    },
   ): Promise<Requirement> {
     console.log(user);
 
@@ -91,7 +96,12 @@ export class RequirementResolver {
     @Args('data')
     data: UpdateRequirementInput,
     @AuthenticatedUser()
-    user?: { sub: string; name?: string; email?: string },
+    user?: {
+      sub: string;
+      name?: string;
+      email?: string;
+      realm_access?: { roles: string[] };
+    },
   ): Promise<Requirement> {
     const updatedRequirement = await this.requirementService.updateRequirement(
       id,
