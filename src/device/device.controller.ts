@@ -15,7 +15,7 @@ export class DeviceController {
     private readonly deviceService: DeviceService,
   ) {}
 
-  @MessagePattern('requirements:update')
+  @MessagePattern('requirements:updated')
   async update(@Payload('id') id: string): Promise<void> {
     const requirement = await this.requirementService.findRequirementById(id);
 

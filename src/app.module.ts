@@ -12,8 +12,8 @@ import {
 } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { NatsModule } from './nats/nats.module';
-import { RequirementModule } from './requirement/requirement.module';
 import { NotificationModule } from './notification/notification.module';
+import { RequirementModule } from './requirement/requirement.module';
 
 @Module({
   imports: [
