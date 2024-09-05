@@ -51,6 +51,8 @@ export class RequirementResolver {
     @AuthenticatedUser()
     user: { sub: string; name?: string; email?: string },
   ): Promise<Requirement> {
+    console.log(user);
+
     const requirement = await this.requirementService.createRequirement(
       data,
       user,
