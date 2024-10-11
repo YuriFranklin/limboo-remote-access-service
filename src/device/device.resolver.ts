@@ -36,7 +36,7 @@ export class DeviceResolver {
     private readonly configService: ConfigService,
   ) {}
 
-  @ResolveField(() => [User])
+  @ResolveField(() => User)
   async owner(@Parent() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
