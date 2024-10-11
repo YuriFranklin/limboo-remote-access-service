@@ -26,7 +26,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventType, LogLevel } from 'src/log/log.entity';
 import { User } from 'src/user/user.entity';
 
-@Resolver('Device')
+@Resolver(() => Device)
 @UseGuards(AuthGuard, RoleGuard)
 @Resource('device')
 export class DeviceResolver {
