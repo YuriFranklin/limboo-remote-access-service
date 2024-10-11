@@ -1,10 +1,4 @@
-import {
-  Directive,
-  Field,
-  ID,
-  ObjectType,
-  registerEnumType,
-} from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
@@ -39,7 +33,6 @@ registerEnumType(DeviceStatus, {
 
 @ObjectType()
 @Entity()
-@Directive('@key(fields: "id")')
 export class Device {
   @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
@@ -62,7 +55,6 @@ export class Device {
   ownerId: string;
 
   @Field(() => User, { nullable: true })
-  @Directive('@external')
   owner?: User;
 
   @Column({ type: 'json', nullable: true })
@@ -70,7 +62,6 @@ export class Device {
   coOwnersId?: string[];
 
   @Field(() => [User], { nullable: true })
-  @Directive('@external')
   coOwners?: User[];
 
   @Column()

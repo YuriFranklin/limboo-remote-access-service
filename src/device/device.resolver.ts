@@ -1,4 +1,11 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { DeviceService } from './device.service';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { Device } from './device.entity';
@@ -27,6 +34,11 @@ export class DeviceResolver {
     private logService: LogService,
     private readonly configService: ConfigService,
   ) {}
+
+  @ResolveField('owner')
+  getUser(@Parent() device: Device) {
+    return { __typename: 'User', id: device.ownerId };
+  }
 
   @Query(() => GetAllDeviceOutput)
   @Resource('device')
