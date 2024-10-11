@@ -36,20 +36,14 @@ export class DeviceResolver {
     private readonly configService: ConfigService,
   ) {}
 
-  @ResolveField('owner', () => User, { nullable: true })
+  @ResolveField(() => User, { nullable: true })
   async owner(@Parent() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
 
-  @ResolveField('coOwners', () => [User], { nullable: true })
+  @ResolveField(() => [User], { nullable: true })
   async coOwners(@Parent() device: Device) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
-  }
-
-  @Query(() => GetAllDeviceOutput)
-  @Resource('device')
-  async devices(@Args() args: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
-    return this.deviceService.findAllDevices(args);
   }
 
   @Query(() => Device, { nullable: true })
@@ -64,6 +58,12 @@ export class DeviceResolver {
       return this.deviceService.findDeviceByMac(mac);
     }
     throw new Error('Either id or mac must be provided');
+  }
+
+  @Query(() => GetAllDeviceOutput)
+  @Resource('device')
+  async devices(@Args() args: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
+    return this.deviceService.findAllDevices(args);
   }
 
   @Roles({
