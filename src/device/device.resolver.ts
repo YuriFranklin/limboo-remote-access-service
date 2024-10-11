@@ -36,12 +36,12 @@ export class DeviceResolver {
     private readonly configService: ConfigService,
   ) {}
 
-  @ResolveField(() => User, { nullable: true })
+  @ResolveField('owner', () => User, { nullable: true })
   async owner(@Parent() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
 
-  @ResolveField(() => [User], { nullable: true })
+  @ResolveField('coOwners', () => [User], { nullable: true })
   async coOwners(@Parent() device: Device) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
