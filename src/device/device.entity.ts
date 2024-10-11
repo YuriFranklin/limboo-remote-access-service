@@ -1,10 +1,4 @@
-import {
-  Directive,
-  Field,
-  ID,
-  ObjectType,
-  registerEnumType,
-} from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
