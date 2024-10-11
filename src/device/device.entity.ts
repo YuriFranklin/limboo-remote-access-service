@@ -61,7 +61,6 @@ export class Device {
   ownerId: string;
 
   @Field(() => User, { nullable: true })
-  @Directive('@requires(fields: "ownerId")')
   owner?: User;
 
   @Column({ type: 'json', nullable: true })
@@ -69,7 +68,6 @@ export class Device {
   coOwnersId?: string[];
 
   @Field(() => [User], { nullable: true })
-  @Directive('@requires(fields: "coOwnersId")')
   coOwners?: User[];
 
   @Column()
