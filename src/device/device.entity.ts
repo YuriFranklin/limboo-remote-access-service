@@ -39,6 +39,7 @@ registerEnumType(DeviceStatus, {
 
 @ObjectType()
 @Entity()
+@Directive('@key(fields: "id")')
 export class Device {
   @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
