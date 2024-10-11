@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Specs } from './specs.entity';
+import { User } from 'src/user/user.entity';
 
 export type CachedDevice = {
   status: DeviceStatus;
@@ -53,9 +54,15 @@ export class Device {
   @Field()
   ownerId: string;
 
+  @Field(() => User, { nullable: true })
+  owner?: User;
+
   @Column({ type: 'json', nullable: true })
   @Field(() => [String], { nullable: true })
   coOwnersId?: string[];
+
+  @Field(() => [User], { nullable: true })
+  coOwners?: User[];
 
   @Column()
   @Field()

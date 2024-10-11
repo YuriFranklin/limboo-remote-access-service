@@ -1,8 +1,9 @@
 {
-  "name": "nest-typescript-starter",
+  "name": "limboo-remote-access-service",
   "private": true,
   "version": "1.0.0",
-  "description": "Nest TypeScript starter repository",
+  "author": "Yuri Franklin <contato@yuri.dev.br>",
+  "description": "",
   "license": "MIT",
   "scripts": {
     "build": "nest build",

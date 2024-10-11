@@ -12,7 +12,7 @@ import { KeycloakConfigService } from 'src/keycloak-config/keycloak-config.servi
 import * as jwt from 'jsonwebtoken';
 import * as jwksClient from 'jwks-rsa';
 import { promisify } from 'util';
-import { ROLES_KEY } from 'src/common/constants/constants';
+import { WS_ROLES_KEY } from 'src/common/constants/constants';
 
 @Injectable()
 export class CustomRoleGuard implements CanActivate {
@@ -23,7 +23,7 @@ export class CustomRoleGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const rolesOptions = this.reflector.get<RolesOptions>(
-      ROLES_KEY,
+      WS_ROLES_KEY,
       context.getHandler(),
     );
 
@@ -79,10 +79,8 @@ export class CustomRoleGuard implements CanActivate {
       if (error.name === 'TokenExpiredError') {
         client.emit('authentication_error', 'Expired token.');
         client.disconnect(true);
-        // Silently block the request by returning false without logging the error
         return false;
       } else {
-        // Rethrow other errors
         throw new WsException('Error on token verify');
       }
     }
@@ -96,4 +94,5 @@ export interface RolesOptions {
   mode: RoleMatchingMode;
 }
 
-export const Roles = (options: RolesOptions) => SetMetadata(ROLES_KEY, options);
+export const WsRoles = (options: RolesOptions) =>
+  SetMetadata(WS_ROLES_KEY, options);

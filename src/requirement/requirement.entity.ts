@@ -37,6 +37,10 @@ export class Requirement {
   @Field(() => Date)
   respondedAt: Date;
 
+  @Field(() => Date, { nullable: true })
+  @IsOptional()
+  expiresIn?: Date;
+
   @Field(() => RequestStatus)
   status: RequestStatus = RequestStatus.PENDING;
 
