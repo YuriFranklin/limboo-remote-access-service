@@ -24,6 +24,7 @@ import { GetAllDeviceOutput } from './dto/get-all-device.output';
 import { LogService } from 'src/log/log.service';
 import { ConfigService } from '@nestjs/config';
 import { EventType, LogLevel } from 'src/log/log.entity';
+import { User } from 'src/user/user.entity';
 
 @Resolver(() => Device)
 @UseGuards(AuthGuard, RoleGuard)
@@ -35,12 +36,12 @@ export class DeviceResolver {
     private readonly configService: ConfigService,
   ) {}
 
-  @ResolveField('owner')
+  @ResolveField(() => [User])
   async owner(@Parent() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
 
-  @ResolveField('coOwners')
+  @ResolveField(() => [User])
   async coOwners(@Parent() device: Device) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
