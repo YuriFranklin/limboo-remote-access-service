@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { NatsService } from 'src/nats/nats.service';
 @Injectable()
 export class DeviceService implements OnModuleInit {
   private kvDevices: KV;
+  private readonly logger = new Logger(DeviceService.name);
 
   constructor(
     @InjectRepository(Device)
@@ -145,10 +147,14 @@ export class DeviceService implements OnModuleInit {
 
     if (!device) throw new NotFoundException('Device not founded.');
 
-    const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
-      status: DeviceStatus;
-    }>();
-    device['status'] = storedOnKVDevice.status;
+    try {
+      const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
+        status: DeviceStatus;
+      }>();
+      device['status'] = storedOnKVDevice.status;
+    } catch (e) {
+      this.logger.error(e);
+    }
 
     return device;
   }
