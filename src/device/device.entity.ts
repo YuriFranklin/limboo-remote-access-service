@@ -62,6 +62,7 @@ export class Device {
 
   @Field(() => User, { nullable: true })
   @Directive('@external')
+  @Directive('@requires(fields: "ownerId")')
   owner?: User;
 
   @Column({ type: 'json', nullable: true })
@@ -70,6 +71,7 @@ export class Device {
 
   @Field(() => [User], { nullable: true })
   @Directive('@external')
+  @Directive('@requires(fields: "coOwnersId")')
   coOwners?: User[];
 
   @Column()
