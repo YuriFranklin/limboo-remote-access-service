@@ -61,7 +61,6 @@ export class Device {
   ownerId: string;
 
   @Field(() => User, { nullable: true })
-  @Directive('@external')
   @Directive('@requires(fields: "ownerId")')
   owner?: User;
 
@@ -70,7 +69,6 @@ export class Device {
   coOwnersId?: string[];
 
   @Field(() => [User], { nullable: true })
-  @Directive('@external')
   @Directive('@requires(fields: "coOwnersId")')
   coOwners?: User[];
 
