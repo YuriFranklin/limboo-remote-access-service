@@ -14,6 +14,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { NatsModule } from './nats/nats.module';
 import { NotificationModule } from './notification/notification.module';
 import { RequirementModule } from './requirement/requirement.module';
+import { User } from './user/user.entity';
 
 @Module({
   imports: [
@@ -42,6 +43,9 @@ import { RequirementModule } from './requirement/requirement.module';
       driver: ApolloFederationDriver,
       autoSchemaFile: {
         federation: 2,
+      },
+      buildSchemaOptions: {
+        orphanedTypes: [User],
       },
       playground: false,
     }),
