@@ -40,6 +40,11 @@ export class DeviceResolver {
     return { __typename: 'User', id: device.ownerId };
   }
 
+  @ResolveField('coOwners')
+  getCoOwners(@Parent() device: Device) {
+    return device.coOwnersId?.map((id) => ({ __typename: 'User', id })) || [];
+  }
+
   @Query(() => GetAllDeviceOutput)
   @Resource('device')
   async devices(@Args() args: GetAllDeviceInput): Promise<GetAllDeviceOutput> {
