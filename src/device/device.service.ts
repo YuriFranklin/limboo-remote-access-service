@@ -43,6 +43,7 @@ export class DeviceService implements OnModuleInit {
       await this.natsService.ensureStreamExists('devices-stream', [
         'devices:create',
         'devices:update',
+        'devices:delete',
       ]);
     } catch (error) {
       console.error('Failed to initialize device module:', error);
@@ -164,10 +165,14 @@ export class DeviceService implements OnModuleInit {
 
     if (!device) throw new NotFoundException('Device not founded.');
 
-    const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
-      status: DeviceStatus;
-    }>();
-    device['status'] = storedOnKVDevice.status;
+    try {
+      const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
+        status: DeviceStatus;
+      }>();
+      device['status'] = storedOnKVDevice.status;
+    } catch (e) {
+      this.logger.error(e);
+    }
 
     return device;
   }
