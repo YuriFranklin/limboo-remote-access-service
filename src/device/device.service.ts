@@ -43,7 +43,7 @@ export class DeviceService implements OnModuleInit {
       await this.natsService.ensureStreamExists('devices-stream', [
         'devices:create',
         'devices:update',
-        'devices:delete',
+        'devices:deleted',
       ]);
     } catch (error) {
       console.error('Failed to initialize device module:', error);
@@ -209,6 +209,11 @@ export class DeviceService implements OnModuleInit {
     const deleted = await this.deviceRepository.delete({ id });
 
     if (deleted) {
+      await this.jetStream.publish(
+        'devices:deleted',
+        JSON.stringify({ id: id }),
+      );
+
       return true;
     }
 
