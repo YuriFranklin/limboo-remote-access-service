@@ -44,6 +44,8 @@ export class DeviceService implements OnModuleInit {
         'devices:create',
         'devices:update',
         'devices:deleted',
+        'devices:kv:upsert',
+        'devices:kv:delete',
       ]);
     } catch (error) {
       console.error('Failed to initialize device module:', error);
