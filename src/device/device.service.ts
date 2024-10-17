@@ -41,8 +41,8 @@ export class DeviceService implements OnModuleInit {
       this.kvDevices = await this.kvStore('devices');
 
       await this.natsService.ensureStreamExists('devices-stream', [
-        'devices:create',
-        'devices:update',
+        'devices:created',
+        'devices:updated',
         'devices:deleted',
         'devices:kv:upsert',
         'devices:kv:delete',
@@ -189,6 +189,11 @@ export class DeviceService implements OnModuleInit {
         'An exception has occurred on server.',
       );
 
+    await this.jetStream.publish(
+      'devices:created',
+      JSON.stringify({ id: device.id }),
+    );
+
     return savedDevice;
   }
 
@@ -200,7 +205,7 @@ export class DeviceService implements OnModuleInit {
     //const deviceUpdated = this.deviceRepository.create({ ...device, ...data });
 
     await this.jetStream.publish(
-      'devices:update',
+      'devices:updated',
       JSON.stringify({ id: device.id }),
     );
 
