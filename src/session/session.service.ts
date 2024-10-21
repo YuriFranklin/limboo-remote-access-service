@@ -211,18 +211,12 @@ export class SessionService implements OnModuleInit {
     const session = this.sessionRepository.create(data);
     const savedSession = await this.sessionRepository.save(session);
 
-    const deviceDataBytes = new TextEncoder().encode(
-      JSON.stringify({
-        ...cachedDevice,
-        hostingSessions: [...cachedDevice.hostingSessions, savedSession.id],
-      }),
-    );
+    const deviceDataBytes = JSON.stringify({
+      ...cachedDevice,
+      hostingSessions: [...cachedDevice.hostingSessions, savedSession.id],
+    });
 
-    await this.kvDevices.update(
-      data.deviceId,
-      deviceDataBytes,
-      cachedDeviceEntry.revision,
-    );
+    await this.kvDevices.put(data.deviceId, deviceDataBytes);
 
     await this.jetStream.publish(
       'device:kv:upsert',
@@ -244,11 +238,9 @@ export class SessionService implements OnModuleInit {
         })) || [],
     };
 
-    const sessionDataBytes = new TextEncoder().encode(
-      JSON.stringify(sessionData),
-    );
+    const sessionDataStringified = JSON.stringify(sessionData);
 
-    await this.kvSessions.put(savedSession.id, sessionDataBytes);
+    await this.kvSessions.put(savedSession.id, sessionDataStringified);
 
     await this.jetStream.publish(
       'sessions:create',

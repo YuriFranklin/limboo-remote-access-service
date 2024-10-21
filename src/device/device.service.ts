@@ -80,7 +80,7 @@ export class DeviceService implements OnModuleInit {
         devices.map(async (device) => {
           try {
             const storedOnKVDevice = (
-              await this.kvDevices.get(device.mac)
+              await this.kvDevices.get(device.id)
             ).json<{
               status: DeviceStatus;
             }>();
@@ -120,7 +120,7 @@ export class DeviceService implements OnModuleInit {
         result.map(async (device) => {
           try {
             const storedOnKVDevice = (
-              await this.kvDevices.get(device.mac)
+              await this.kvDevices.get(device.id)
             ).json<{
               status: DeviceStatus;
             }>();
@@ -168,7 +168,7 @@ export class DeviceService implements OnModuleInit {
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
+      const storedOnKVDevice = (await this.kvDevices.get(device.id)).json<{
         status: DeviceStatus;
       }>();
       device['status'] = storedOnKVDevice.status;
@@ -201,8 +201,6 @@ export class DeviceService implements OnModuleInit {
     const device = await this.deviceRepository.save({ ...data });
 
     if (!device) throw new NotFoundException('Device not founded.');
-
-    //const deviceUpdated = this.deviceRepository.create({ ...device, ...data });
 
     await this.jetStream.publish(
       'devices:updated',
