@@ -83,10 +83,10 @@ export class Device {
   @Field(() => DeviceStatus, { nullable: true })
   status?: DeviceStatus;
 
-  @Field({ nullable: true })
-  hostinSessions?: string[];
-
   @Column({ type: 'json', nullable: true })
   @Field(() => Specs)
   specs?: Specs;
+
+  @Field({ nullable: true })
+  hostingSessionsIds?: string[];
 }
