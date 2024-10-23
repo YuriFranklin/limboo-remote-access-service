@@ -174,6 +174,7 @@ export class SessionService implements OnModuleInit {
       skip,
       take: Math.min(take, 1000),
       where: whereClause,
+      order: { createdAt: 'DESC' },
     } as FindManyOptions<Session>);
 
     const sessionsPassedOnKV = await this.attachSessionData(sessions);
