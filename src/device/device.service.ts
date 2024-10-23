@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Device, DeviceStatus } from './device.entity';
+import { CachedDevice, Device, DeviceStatus } from './device.entity';
 import { Repository } from 'typeorm';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
@@ -81,12 +81,12 @@ export class DeviceService implements OnModuleInit {
           try {
             const storedOnKVDevice = (
               await this.kvDevices.get(device.id)
-            ).json<{
-              status: DeviceStatus;
-            }>();
+            ).json<CachedDevice>();
             device['status'] = storedOnKVDevice.status ?? DeviceStatus.UNKNOWN;
+            device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
           } catch (e) {
             device['status'] = DeviceStatus.UNKNOWN;
+            device['hostingSessions'] = [];
           }
           return device;
         }),
@@ -121,12 +121,12 @@ export class DeviceService implements OnModuleInit {
           try {
             const storedOnKVDevice = (
               await this.kvDevices.get(device.id)
-            ).json<{
-              status: DeviceStatus;
-            }>();
+            ).json<CachedDevice>();
             device['status'] = storedOnKVDevice.status ?? DeviceStatus.OFFLINE;
+            device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
           } catch (e) {
             device['status'] = DeviceStatus.UNKNOWN;
+            device['hostingSessions'] = [];
           }
           return device;
         }),
@@ -151,10 +151,11 @@ export class DeviceService implements OnModuleInit {
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      const storedOnKVDevice = (await this.kvDevices.get(device.mac)).json<{
-        status: DeviceStatus;
-      }>();
+      const storedOnKVDevice = (
+        await this.kvDevices.get(device.mac)
+      ).json<CachedDevice>();
       device['status'] = storedOnKVDevice.status;
+      device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
     } catch (e) {
       this.logger.error(e);
     }
@@ -168,10 +169,11 @@ export class DeviceService implements OnModuleInit {
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      const storedOnKVDevice = (await this.kvDevices.get(device.id)).json<{
-        status: DeviceStatus;
-      }>();
+      const storedOnKVDevice = (
+        await this.kvDevices.get(device.id)
+      ).json<CachedDevice>();
       device['status'] = storedOnKVDevice.status;
+      device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
     } catch (e) {
       this.logger.error(e);
     }
