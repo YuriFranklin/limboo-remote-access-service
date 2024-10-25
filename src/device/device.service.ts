@@ -20,6 +20,7 @@ import {
   OrderDirection,
 } from './dto/get-all-device.input';
 import { NatsService } from 'src/nats/nats.service';
+import { PatchDeviceInput } from './dto/patch-device.input';
 
 @Injectable()
 export class DeviceService implements OnModuleInit {
@@ -210,6 +211,25 @@ export class DeviceService implements OnModuleInit {
     );
 
     return device;
+  }
+
+  async patchDevice(id: string, data: PatchDeviceInput) {
+    const device = await this.deviceRepository.findOne({ where: { id } });
+
+    if (!device) throw new NotFoundException('Device not found.');
+
+    const updatedDevice = await this.deviceRepository.save({
+      ...device,
+      ...data,
+      id,
+    });
+
+    await this.jetStream.publish(
+      'devices:updated',
+      JSON.stringify({ id: updatedDevice.id }),
+    );
+
+    return updatedDevice;
   }
 
   async deleteDevice(id: string): Promise<boolean> {

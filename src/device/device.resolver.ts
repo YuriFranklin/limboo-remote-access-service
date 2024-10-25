@@ -25,6 +25,7 @@ import { LogService } from 'src/log/log.service';
 import { ConfigService } from '@nestjs/config';
 import { EventType, LogLevel } from 'src/log/log.entity';
 import { User } from 'src/user/user.entity';
+import { PatchDeviceInput } from './dto/patch-device.input';
 
 @Resolver(() => Device)
 @UseGuards(AuthGuard, RoleGuard)
@@ -140,5 +141,31 @@ export class DeviceResolver {
       });
 
     return deleted;
+  }
+
+  @Roles({
+    roles: ['realm:can_use_remote_connections'],
+    mode: RoleMatchingMode.ANY,
+  })
+  @Mutation(() => Device)
+  @Resource('device')
+  async patchDevice(
+    @Args('id') id: string,
+    @Args('data') data: PatchDeviceInput,
+    @AuthenticatedUser() user: { sub: string; name?: string; email?: string },
+  ) {
+    const patchedDevice = await this.deviceService.patchDevice(id, data);
+
+    if (patchedDevice)
+      await this.logService.createLog({
+        level: LogLevel.INFO,
+        payload: { id, ...data },
+        message: 'updated an device.',
+        operation: `${this.configService.get<string>('serviceName')}:device:update`,
+        eventType: EventType.DELETE,
+        userId: user.sub,
+      });
+
+    return patchedDevice;
   }
 }
