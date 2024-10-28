@@ -2,6 +2,7 @@ import { InputType, Field } from '@nestjs/graphql';
 import {
   IsArray,
   IsBoolean,
+  IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
@@ -11,37 +12,24 @@ import { Type } from 'class-transformer';
 
 @InputType()
 export class PatchDeviceInput {
-  @Field({ nullable: true })
+  @Field()
   @IsString()
   @IsOptional()
+  @IsNotEmpty({ message: 'Cannot be empty.' })
   name?: string;
 
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  loggedUserName?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  mac?: string;
-
-  @Field({ nullable: true })
-  @IsString()
-  @IsOptional()
-  ownerId?: string;
-
-  @Field(() => [String], { nullable: true })
+  @Field(() => [String])
   @IsArray()
   @IsOptional()
   coOwnersId?: string[];
 
-  @Field({ nullable: true })
+  @Field()
   @IsBoolean()
+  @IsNotEmpty({ message: 'Cannot be empty.' })
   @IsOptional()
   canHostConnections?: boolean;
 
-  @Field(() => SpecsInput, { nullable: true })
+  @Field(() => SpecsInput)
   @ValidateNested()
   @Type(() => SpecsInput)
   @IsOptional()

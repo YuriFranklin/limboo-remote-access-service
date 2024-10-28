@@ -153,7 +153,7 @@ export class DeviceService implements OnModuleInit {
 
     try {
       const storedOnKVDevice = (
-        await this.kvDevices.get(device.mac)
+        await this.kvDevices.get(id)
       ).json<CachedDevice>();
       device['status'] = storedOnKVDevice.status;
       device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
