@@ -257,4 +257,77 @@ export class DeviceService implements OnModuleInit {
       coOwnersId: [...device.coOwnersId, coOwnerId],
     });
   }
+
+  async getKVDevice(id: string): Promise<CachedDevice | null> {
+    try {
+      const storedDeviceEntry = await this.kvDevices.get(id);
+
+      if (!storedDeviceEntry) {
+        this.logger.warn(
+          `[getKVDevice]: Device with ID ${id} not found in KV Store.`,
+        );
+        return null;
+      }
+
+      let storedDevice: CachedDevice;
+      try {
+        if (
+          storedDeviceEntry.value === null ||
+          storedDeviceEntry.string() === ''
+        ) {
+          this.logger.warn(
+            `[getKVDevice]: Device found for ID ${id}, but is null.`,
+          );
+
+          return null;
+        }
+
+        storedDevice = storedDeviceEntry.json<CachedDevice>();
+        this.logger.log(
+          `[getKVDevice]: Device found for ID ${id}`,
+          storedDevice,
+        );
+      } catch (error) {
+        this.logger.error(
+          `[getKVDevice]: Error parsing JSON for device ID ${id}:`,
+          error,
+        );
+        this.logger.error(storedDeviceEntry.value);
+        throw new Error(`Failed to parse device data for ID ${id}`);
+      }
+
+      return storedDevice;
+    } catch (error) {
+      this.logger.error(
+        `[getKVDevice]: Error retrieving device with ID ${id} from KV Store:`,
+        error,
+      );
+      throw new Error(`Error retrieving device with ID ${id}`);
+    }
+  }
+
+  async upsertKVDevice(id: string, data: CachedDevice): Promise<CachedDevice> {
+    const device = await this.getKVDevice(id);
+
+    const updatedDevice = device ? { ...device, data } : { ...data };
+    const deviceData = JSON.stringify(updatedDevice);
+
+    try {
+      JSON.parse(deviceData);
+    } catch (error) {
+      this.logger.error(
+        `upsertKVDevice: Invalid JSON to store in KV Store: ${error.message}`,
+      );
+      throw new Error('Invalid device data JSON');
+    }
+
+    await this.kvDevices.put(id, deviceData);
+    this.logger.log(
+      '[upsertKVDevice]: Device successfully updated in KV Store',
+      deviceData,
+    );
+
+    await this.jetStream.publish('devices:kv:upsert', JSON.stringify({ id }));
+    return data;
+  }
 }

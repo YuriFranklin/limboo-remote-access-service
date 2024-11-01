@@ -40,7 +40,7 @@ export class Session {
 
   @Column({ nullable: true })
   @Field(() => String, { nullable: true })
-  duration: string;
+  duration?: string;
 
   @BeforeUpdate()
   calculateDuration() {

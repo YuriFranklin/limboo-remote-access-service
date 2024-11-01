@@ -95,32 +95,7 @@ export class SessionResolver {
     @Args('data') data: CreateSessionInput,
     @AuthenticatedUser() user: { sub: string; name?: string; email?: string },
   ): Promise<Session> {
-    const { deviceId, watchers, ...rest } = data;
-    const sessionData: CreateSessionInput = { deviceId, ...rest };
-
-    let devices: (Device & { isControlling: boolean })[] = [];
-    if (watchers && watchers.length > 0) {
-      devices = await Promise.all(
-        watchers.map(async (watcher) => {
-          try {
-            const device = await this.deviceService.findDeviceById(watcher.id);
-            return { ...device, isControlling: watcher.isControlling };
-          } catch (error) {
-            this.logger.error(
-              `Error fetching device with ID ${watcher.id}: ${error.message}`,
-            );
-            return null;
-          }
-        }),
-      );
-    }
-
-    devices = devices.filter((device) => device !== null);
-
-    const createdSession = await this.sessionService.createSession({
-      ...sessionData,
-      watchers: devices,
-    });
+    const createdSession = await this.sessionService.createSession(data, user);
 
     await this.logService.createLog({
       level: LogLevel.INFO,

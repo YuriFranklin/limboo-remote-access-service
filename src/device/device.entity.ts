@@ -17,6 +17,8 @@ export type CachedDevice = {
   iddle?: Date;
   socketIds?: string[];
   hostingSessions?: string[];
+  watchingSessions?: string[];
+  accountId: string;
 };
 
 export enum DeviceStatus {

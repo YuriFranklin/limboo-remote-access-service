@@ -1,7 +1,7 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnModuleInit,
@@ -11,12 +11,14 @@ import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { Session } from './session.entity';
 import { CreateSessionInput } from './dto/create-session.input';
 import { UpdateSessionInput } from './dto/update-session.input';
-import { CachedDevice, Device, DeviceStatus } from 'src/device/device.entity';
+import { Device, DeviceStatus } from 'src/device/device.entity';
 import { JetStreamClient, KV, KvOptions, PubAck } from 'nats';
 import { NATS_JS, NATS_KV_STORE } from 'src/common/constants/constants';
 import { UnavailableException } from '../common/exceptions/unavailable.exception';
 import { Between } from 'typeorm';
 import { subDays } from 'date-fns';
+import { DeviceService } from 'src/device/device.service';
+import { ForbiddenError } from '@nestjs/apollo';
 
 type KVSessionData = {
   hostId: string;
@@ -36,7 +38,6 @@ type SessionWithKvData = Session & {
 export class SessionService implements OnModuleInit {
   private readonly logger = new Logger(SessionService.name);
   private kvSessions: KV;
-  private kvDevices: KV;
 
   constructor(
     @InjectRepository(Session)
@@ -45,12 +46,12 @@ export class SessionService implements OnModuleInit {
     private kvStore: (name: string, opts?: Partial<KvOptions>) => Promise<KV>,
     @Inject(NATS_JS)
     private jetStream: JetStreamClient,
+    private readonly deviceService: DeviceService,
   ) {}
 
   async onModuleInit() {
     try {
       this.kvSessions = await this.kvStore('sessions');
-      this.kvDevices = await this.kvStore('devices');
     } catch (error) {
       console.error('Failed to initialize kvs on sessions module:', error);
     }
@@ -193,41 +194,88 @@ export class SessionService implements OnModuleInit {
   }
 
   async createSession(
-    data: Omit<CreateSessionInput, 'watchers'> & {
-      watchers?: (Device & { isControlling?: boolean })[];
-    },
+    data: CreateSessionInput,
+    user: { sub: string; name?: string; email?: string },
   ): Promise<Session> {
-    const cachedDeviceEntry = await this.kvDevices.get(data.deviceId);
+    const device = await this.deviceService.findDeviceById(data.deviceId);
 
-    const cachedDevice = cachedDeviceEntry.json<CachedDevice>();
+    if (!device)
+      throw new NotFoundException(
+        `Cannot start session because device with ID ${data.deviceId} was not found.`,
+      );
+
+    if (
+      device.ownerId !== user.sub &&
+      !device?.coOwnersId?.some((coOwner) => coOwner === user.sub)
+    )
+      throw new ForbiddenError(
+        `Cannot start this session because you are not the owner or co-owner of this device.`,
+      );
+
+    const cachedDevice = await this.deviceService.getKVDevice(data.deviceId);
 
     if (!cachedDevice)
       throw new NotFoundException(
-        "Cannot starting sessions because device hasn't found.",
+        `Cannot start session because device with ID ${data.deviceId} was not found in KV Store.`,
       );
 
     if (cachedDevice.status !== DeviceStatus.AVAILABLE)
-      throw new UnavailableException("Devices isn't available.", '403');
+      throw new UnavailableException('Device is not available.', '403');
 
-    const session = this.sessionRepository.create(data);
+    let watchers: (Device & { isControlling: boolean })[] = [];
+
+    if (data.watchers && data.watchers.length > 0) {
+      watchers = (
+        await Promise.all(
+          data.watchers.map(async (watcher) => {
+            try {
+              const device = await this.deviceService.findDeviceById(
+                watcher.id,
+              );
+              return { ...device, isControlling: watcher.isControlling };
+            } catch (error) {
+              this.logger.error(
+                `Error fetching device with ID ${watcher.id}: ${error.message}`,
+              );
+              return null;
+            }
+          }),
+        )
+      ).filter(Boolean);
+    }
+
+    if (!watchers.length)
+      throw new BadRequestException('The session has no devices to stream.');
+
+    const session = this.sessionRepository.create({ ...data, watchers });
     const savedSession = await this.sessionRepository.save(session);
 
-    const deviceDataBytes = JSON.stringify({
+    await Promise.all(
+      watchers.map(async (watcher) => {
+        const watcherKV = await this.deviceService.getKVDevice(watcher.id);
+
+        if (watcherKV) {
+          await this.deviceService.upsertKVDevice(watcher.id, {
+            ...watcherKV,
+            watchingSessions: [...watcherKV.watchingSessions, session.id],
+          });
+        } else {
+          this.logger.warn(
+            `[createSession]: Device with ID ${watcher.id} not found in KV Store.`,
+          );
+        }
+      }),
+    );
+
+    await this.deviceService.upsertKVDevice(data.deviceId, {
       ...cachedDevice,
       hostingSessions: [...cachedDevice.hostingSessions, savedSession.id],
     });
-
-    await this.kvDevices.put(data.deviceId, deviceDataBytes);
 
     await this.jetStream.publish(
       'device:kv:upsert',
       JSON.stringify({ id: data.deviceId }),
     );
-
-    if (!savedSession)
-      throw new InternalServerErrorException(
-        'An exception has occurred on server.',
-      );
 
     const sessionData = {
       hostId: data.deviceId,

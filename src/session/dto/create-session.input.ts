@@ -6,6 +6,6 @@ export class CreateSessionInput {
   @Field()
   deviceId: string;
 
-  @Field(() => [WatcherInput], { nullable: true })
-  watchers?: WatcherInput[];
+  @Field(() => [WatcherInput])
+  watchers: WatcherInput[];
 }
