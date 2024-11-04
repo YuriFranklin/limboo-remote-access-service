@@ -280,7 +280,7 @@ export class SessionService implements OnModuleInit {
     });
 
     await this.jetStream.publish(
-      'device:kv:upsert',
+      'devices:kv:upsert',
       JSON.stringify({ id: data.deviceId }),
     );
 
