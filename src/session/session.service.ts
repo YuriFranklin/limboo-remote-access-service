@@ -19,6 +19,7 @@ import { Between } from 'typeorm';
 import { subDays } from 'date-fns';
 import { DeviceService } from 'src/device/device.service';
 import { ForbiddenError } from '@nestjs/apollo';
+import { NatsService } from 'src/nats/nats.service';
 
 type KVSessionData = {
   hostId: string;
@@ -47,13 +48,19 @@ export class SessionService implements OnModuleInit {
     @Inject(NATS_JS)
     private jetStream: JetStreamClient,
     private readonly deviceService: DeviceService,
+    private readonly natsService: NatsService,
   ) {}
 
   async onModuleInit() {
     try {
       this.kvSessions = await this.kvStore('sessions');
+
+      await this.natsService.ensureStreamExists('sessions-stream', [
+        'sessions:create',
+        'sessions:stop',
+      ]);
     } catch (error) {
-      console.error('Failed to initialize kvs on sessions module:', error);
+      console.error('Failed to initialize sessions module:', error);
     }
   }
 
