@@ -28,7 +28,6 @@ import { EventType, LogLevel } from 'src/log/log.entity';
 import { User } from 'src/user/user.entity';
 import { PatchDeviceInput } from './dto/patch-device.input';
 
-@Resolver(() => Device)
 @Resolver(() => ExtendedDevice)
 @UseGuards(AuthGuard, RoleGuard)
 @Resource('device')
