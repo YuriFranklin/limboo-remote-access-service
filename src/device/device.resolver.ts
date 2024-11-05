@@ -58,7 +58,7 @@ export class DeviceResolver {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
-  @Query(() => Device, { nullable: true })
+  @Query(() => ExtendedDevice, { nullable: true })
   @Resource('device')
   async device(
     @Args('id', { nullable: true }) id?: string,
