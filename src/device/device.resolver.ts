@@ -1,10 +1,10 @@
 import {
   Args,
   Mutation,
-  Parent,
   Query,
   ResolveField,
   Resolver,
+  Root,
 } from '@nestjs/graphql';
 import { DeviceService } from './device.service';
 import { CreateDeviceInput } from './dto/create-device.input';
@@ -39,22 +39,12 @@ export class DeviceResolver {
   ) {}
 
   @ResolveField('owner', () => User, { nullable: true })
-  async owner(@Parent() device: Device) {
+  async owner(@Root() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
 
   @ResolveField('coOwners', () => [User], { nullable: true })
-  async coOwners(@Parent() device: Device) {
-    return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
-  }
-
-  @ResolveField('owner', () => User, { nullable: true })
-  async extendedGetOwner(@Parent() device: ExtendedDevice) {
-    return { __typename: 'User', id: device.ownerId };
-  }
-
-  @ResolveField('coOwners', () => [User], { nullable: true })
-  async extendedGetCoOwners(@Parent() device: ExtendedDevice) {
+  async coOwners(@Root() device: Device) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
