@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { DeviceService } from './device.service';
 import { CreateDeviceInput } from './dto/create-device.input';
-import { Device } from './device.entity';
+import { Device, ExtendedDevice } from './device.entity';
 import { UseGuards } from '@nestjs/common';
 import {
   AuthGuard,
@@ -28,6 +28,7 @@ import { User } from 'src/user/user.entity';
 import { PatchDeviceInput } from './dto/patch-device.input';
 
 @Resolver(() => Device)
+@Resolver(() => ExtendedDevice)
 @UseGuards(AuthGuard, RoleGuard)
 @Resource('device')
 export class DeviceResolver {
@@ -47,12 +48,22 @@ export class DeviceResolver {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
+  @ResolveField('owner', () => User, { nullable: true })
+  async extendedGetOwner(@Parent() device: ExtendedDevice) {
+    return { __typename: 'User', id: device.ownerId };
+  }
+
+  @ResolveField('coOwners', () => [User], { nullable: true })
+  async extendedGetCoOwners(@Parent() device: ExtendedDevice) {
+    return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
+  }
+
   @Query(() => Device, { nullable: true })
   @Resource('device')
   async device(
     @Args('id', { nullable: true }) id?: string,
     @Args('mac', { nullable: true }) mac?: string,
-  ): Promise<Device> {
+  ): Promise<ExtendedDevice> {
     if (id) {
       return this.deviceService.findDeviceById(id);
     } else if (mac) {

@@ -7,10 +7,4 @@ export class User {
   @Field(() => ID)
   @Directive('@external')
   id: string;
-
-  @Field(() => [User], { nullable: true })
-  coOwners?: User[];
-
-  @Field(() => User, { nullable: true })
-  owner?: User;
 }
