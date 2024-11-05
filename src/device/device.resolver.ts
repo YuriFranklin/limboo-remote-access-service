@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { DeviceService } from './device.service';
 import { CreateDeviceInput } from './dto/create-device.input';
-import { Device } from './device.entity';
+import { Device, ExtendedDevice } from './device.entity';
 import { UseGuards } from '@nestjs/common';
 import {
   AuthGuard,
@@ -47,7 +47,7 @@ export class DeviceResolver {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
-  @Query(() => Device, { nullable: true })
+  @Query(() => ExtendedDevice, { nullable: true })
   @Resource('device')
   async device(
     @Args('id', { nullable: true }) id?: string,

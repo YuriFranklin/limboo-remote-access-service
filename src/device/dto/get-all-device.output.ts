@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Device } from '../device.entity';
+import { ExtendedDevice } from '../device.entity';
 
 @ObjectType()
 export class DevicePagination {
@@ -15,8 +15,8 @@ export class DevicePagination {
 
 @ObjectType()
 export class GetAllDeviceOutput {
-  @Field(() => [Device])
-  devices: Device[];
+  @Field(() => [ExtendedDevice])
+  devices: ExtendedDevice[];
 
   @Field(() => DevicePagination)
   pagination: DevicePagination;

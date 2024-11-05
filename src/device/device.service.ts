@@ -7,7 +7,12 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CachedDevice, Device, DeviceStatus } from './device.entity';
+import {
+  CachedDevice,
+  Device,
+  DeviceStatus,
+  ExtendedDevice,
+} from './device.entity';
 import { Repository } from 'typeorm';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
@@ -120,14 +125,15 @@ export class DeviceService implements OnModuleInit {
       devices = await Promise.all(
         result.map(async (device) => {
           try {
-            const storedOnKVDevice = (
-              await this.kvDevices.get(device.id)
-            ).json<CachedDevice>();
-            device['status'] = storedOnKVDevice.status ?? DeviceStatus.OFFLINE;
-            device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { updatedAt, retries, accountId, ...rest } =
+              await this.getKVDevice(device.id);
+
+            const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+
+            return deviceWithKVorDevice;
           } catch (e) {
-            device['status'] = DeviceStatus.UNKNOWN;
-            device['hostingSessions'] = [];
+            this.logger.warn('[findAllDevices]: ', e);
           }
           return device;
         }),
@@ -146,40 +152,40 @@ export class DeviceService implements OnModuleInit {
     };
   }
 
-  async findDeviceById(id: string): Promise<Device> {
+  async findDeviceById(id: string): Promise<ExtendedDevice> {
     const device = await this.deviceRepository.findOne({ where: { id } });
-
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      const storedOnKVDevice = (
-        await this.kvDevices.get(id)
-      ).json<CachedDevice>();
-      device['status'] = storedOnKVDevice.status;
-      device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { updatedAt, accountId, retries, ...rest } =
+        await this.getKVDevice(id);
+
+      const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+
+      return deviceWithKVorDevice;
     } catch (e) {
       this.logger.error(e);
     }
-
-    return device;
   }
 
-  async findDeviceByMac(mac: string): Promise<Device> {
+  async findDeviceByMac(mac: string): Promise<ExtendedDevice> {
     const device = await this.deviceRepository.findOne({ where: { mac } });
 
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      const storedOnKVDevice = (
-        await this.kvDevices.get(device.id)
-      ).json<CachedDevice>();
-      device['status'] = storedOnKVDevice.status;
-      device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { updatedAt, accountId, retries, ...rest } = await this.getKVDevice(
+        device.id,
+      );
+
+      const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+
+      return deviceWithKVorDevice;
     } catch (e) {
       this.logger.error(e);
     }
-
-    return device;
   }
 
   async createDevice(data: CreateDeviceInput) {

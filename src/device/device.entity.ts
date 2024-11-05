@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import {
   Column,
   Entity,
@@ -9,17 +9,35 @@ import {
 import { Specs } from './specs.entity';
 import { User } from 'src/user/user.entity';
 
-export type CachedDevice = {
+@ObjectType()
+export class CachedDevice {
+  @Field(() => DeviceStatus)
   status: DeviceStatus;
-  updatedAt: Date;
+
+  @Field()
+  updatedAt: string;
+
+  @Field(() => Int)
   retries: number;
+
+  @Field(() => String, { nullable: true })
   ip?: string;
+
+  @Field(() => Date, { nullable: true })
   iddle?: Date;
+
+  @Field(() => [String], { nullable: true })
   socketIds?: string[];
+
+  @Field(() => [String], { nullable: true })
   hostingSessions?: string[];
+
+  @Field(() => [String], { nullable: true })
   watchingSessions?: string[];
+
+  @Field(() => String)
   accountId: string;
-};
+}
 
 export enum DeviceStatus {
   HOSTING = 'hosting',
@@ -88,7 +106,28 @@ export class Device {
   @Column({ type: 'json', nullable: true })
   @Field(() => Specs)
   specs?: Specs;
+}
+
+@ObjectType()
+export class ExtendedDevice extends Device {
+  @Field(() => String, { nullable: true })
+  status?: DeviceStatus;
 
   @Field({ nullable: true })
-  hostingSessionsIds?: string[];
+  retries?: number;
+
+  @Field({ nullable: true })
+  ip?: string;
+
+  @Field(() => Date, { nullable: true })
+  iddle?: Date;
+
+  @Field(() => [String], { nullable: true })
+  socketIds?: string[];
+
+  @Field(() => [String], { nullable: true })
+  hostingSessions?: string[];
+
+  @Field(() => [String], { nullable: true })
+  watchingSessions?: string[];
 }
