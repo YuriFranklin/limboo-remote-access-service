@@ -1,6 +1,7 @@
 import {
   Args,
   Mutation,
+  Parent,
   Query,
   ResolveField,
   Resolver,
@@ -39,12 +40,22 @@ export class DeviceResolver {
   ) {}
 
   @ResolveField('owner', () => User, { nullable: true })
-  async owner(@Root() device: Device) {
+  async owner(@Parent() device: Device) {
     return { __typename: 'User', id: device.ownerId };
   }
 
   @ResolveField('coOwners', () => [User], { nullable: true })
-  async coOwners(@Root() device: Device) {
+  async coOwners(@Parent() device: Device) {
+    return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
+  }
+
+  @ResolveField('owner', () => User, { nullable: true })
+  async extendedGetOwner(@Root() device: ExtendedDevice) {
+    return { __typename: 'User', id: device.ownerId };
+  }
+
+  @ResolveField('coOwners', () => [User], { nullable: true })
+  async extendedGetCoOwners(@Root() device: Device) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
