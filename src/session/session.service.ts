@@ -257,6 +257,11 @@ export class SessionService implements OnModuleInit {
     const session = this.sessionRepository.create({ ...data, watchers });
     const savedSession = await this.sessionRepository.save(session);
 
+    await this.deviceService.upsertKVDevice(data.deviceId, {
+      ...cachedDevice,
+      hostingSessions: [...cachedDevice?.hostingSessions, savedSession.id],
+    });
+
     await Promise.all(
       watchers.map(async (watcher) => {
         const watcherKV = await this.deviceService.getKVDevice(watcher.id);
@@ -273,11 +278,6 @@ export class SessionService implements OnModuleInit {
         }
       }),
     );
-
-    await this.deviceService.upsertKVDevice(data.deviceId, {
-      ...cachedDevice,
-      hostingSessions: [...cachedDevice.hostingSessions, savedSession.id],
-    });
 
     await this.jetStream.publish(
       'devices:kv:upsert',
