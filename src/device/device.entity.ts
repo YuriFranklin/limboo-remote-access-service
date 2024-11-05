@@ -130,10 +130,4 @@ export class ExtendedDevice extends Device {
 
   @Field(() => [String], { nullable: true })
   watchingSessions?: string[];
-
-  @Field(() => User, { nullable: true })
-  owner?: User;
-
-  @Field(() => [User], { nullable: true })
-  coOwners?: User[];
 }
