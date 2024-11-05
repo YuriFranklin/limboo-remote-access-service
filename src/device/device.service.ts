@@ -309,7 +309,7 @@ export class DeviceService implements OnModuleInit {
   async upsertKVDevice(id: string, data: CachedDevice): Promise<CachedDevice> {
     const device = await this.getKVDevice(id);
 
-    const updatedDevice = device ? { ...device, data } : { ...data };
+    const updatedDevice = device ? { ...device, ...data } : { ...data };
     const deviceData = JSON.stringify(updatedDevice);
 
     try {
