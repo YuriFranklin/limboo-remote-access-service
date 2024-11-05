@@ -28,6 +28,7 @@ import { User } from 'src/user/user.entity';
 import { PatchDeviceInput } from './dto/patch-device.input';
 
 @Resolver(() => Device)
+@Resolver(() => ExtendedDevice)
 @UseGuards(AuthGuard, RoleGuard)
 @Resource('device')
 export class DeviceResolver {
@@ -38,12 +39,12 @@ export class DeviceResolver {
   ) {}
 
   @ResolveField('owner', () => User, { nullable: true })
-  async owner(@Parent() device: Device) {
+  async owner(@Parent() device: Device | ExtendedDevice) {
     return { __typename: 'User', id: device.ownerId };
   }
 
   @ResolveField('coOwners', () => [User], { nullable: true })
-  async coOwners(@Parent() device: Device) {
+  async coOwners(@Parent() device: Device | ExtendedDevice) {
     return device.coOwnersId?.map((id) => ({ __typename: 'User', id }));
   }
 
@@ -52,7 +53,7 @@ export class DeviceResolver {
   async device(
     @Args('id', { nullable: true }) id?: string,
     @Args('mac', { nullable: true }) mac?: string,
-  ): Promise<Device> {
+  ): Promise<ExtendedDevice> {
     if (id) {
       return this.deviceService.findDeviceById(id);
     } else if (mac) {
