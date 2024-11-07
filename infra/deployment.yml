@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: limboo-remote-access-service
-          image: registry.yuri.dev.br/limboo-remote-access-service:1.0.31
+          image: registry.yuri.dev.br/limboo-remote-access-service:1.0.33
           ports:
             - containerPort: 3000
           env:
