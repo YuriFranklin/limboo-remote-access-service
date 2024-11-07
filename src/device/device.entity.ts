@@ -78,7 +78,7 @@ export class Device {
   @Field(() => User, { nullable: true })
   owner?: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'json', nullable: true, array: true })
   @Field(() => [String], { nullable: true })
   @IsOptional()
   coOwnersId?: string[];
