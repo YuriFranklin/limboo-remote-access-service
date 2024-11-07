@@ -127,17 +127,19 @@ export class DeviceService implements OnModuleInit {
       devices = await Promise.all(
         result.map(async (device) => {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { updatedAt, retries, accountId, ...rest } =
-              await this.getKVDevice(device.id);
+            const kvDevice = await this.getKVDevice(device.id);
 
-            const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+            if (kvDevice) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { updatedAt, retries, accountId, ...rest } = kvDevice;
+              return { ...device, ...rest };
+            }
 
-            return deviceWithKVorDevice;
+            return device;
           } catch (e) {
             this.logger.warn('[findAllDevices]: ', e);
+            return device;
           }
-          return device;
         }),
       );
 
@@ -159,13 +161,15 @@ export class DeviceService implements OnModuleInit {
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { updatedAt, accountId, retries, ...rest } =
-        await this.getKVDevice(id);
+      const kvDevice = await this.getKVDevice(device.id);
 
-      const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+      if (kvDevice) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { updatedAt, retries, accountId, ...rest } = kvDevice;
+        return { ...device, ...rest };
+      }
 
-      return deviceWithKVorDevice;
+      return device;
     } catch (e) {
       this.logger.error(e);
     }
