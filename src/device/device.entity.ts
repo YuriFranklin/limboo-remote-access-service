@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Specs } from './specs.entity';
 import { User } from 'src/user/user.entity';
+import { IsOptional } from 'class-validator';
 
 @ObjectType()
 export class CachedDevice {
@@ -77,8 +78,9 @@ export class Device {
   @Field(() => User, { nullable: true })
   owner?: User;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ nullable: true })
   @Field(() => [String], { nullable: true })
+  @IsOptional()
   coOwnersId?: string[];
 
   @Field(() => [User], { nullable: true })
