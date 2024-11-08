@@ -7,12 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  CachedDevice,
-  Device,
-  DeviceStatus,
-  ExtendedDevice,
-} from './device.entity';
+import { CachedDevice, Device, ExtendedDevice } from './device.entity';
 import { Repository } from 'typeorm';
 import { CreateDeviceInput } from './dto/create-device.input';
 import { UpdateDeviceInput } from './dto/update-device.input';
@@ -87,16 +82,19 @@ export class DeviceService implements OnModuleInit {
       devices = await Promise.all(
         devices.map(async (device) => {
           try {
-            const storedOnKVDevice = (
-              await this.kvDevices.get(device.id)
-            ).json<CachedDevice>();
-            device['status'] = storedOnKVDevice.status ?? DeviceStatus.UNKNOWN;
-            device['hostingSessions'] = storedOnKVDevice?.hostingSessions ?? [];
+            const kvDevice = await this.getKVDevice(device.id);
+
+            if (kvDevice) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { updatedAt, retries, accountId, ...rest } = kvDevice;
+              return { ...device, ...rest };
+            }
+
+            return device;
           } catch (e) {
-            device['status'] = DeviceStatus.UNKNOWN;
-            device['hostingSessions'] = [];
+            this.logger.warn('[findAllDevices]: ', e);
+            return device;
           }
-          return device;
         }),
       );
 
@@ -177,18 +175,18 @@ export class DeviceService implements OnModuleInit {
 
   async findDeviceByMac(mac: string): Promise<ExtendedDevice> {
     const device = await this.deviceRepository.findOne({ where: { mac } });
-
     if (!device) throw new NotFoundException('Device not founded.');
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { updatedAt, accountId, retries, ...rest } = await this.getKVDevice(
-        device.id,
-      );
+      const kvDevice = await this.getKVDevice(device.id);
 
-      const deviceWithKVorDevice = rest ? { ...device, ...rest } : device;
+      if (kvDevice) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { updatedAt, retries, accountId, ...rest } = kvDevice;
+        return { ...device, ...rest };
+      }
 
-      return deviceWithKVorDevice;
+      return device;
     } catch (e) {
       this.logger.error(e);
     }
