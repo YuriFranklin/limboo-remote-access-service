@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Specs } from './specs.entity';
 import { User } from 'src/user/user.entity';
@@ -108,6 +109,10 @@ export class Device {
   @Column({ type: 'json', nullable: true })
   @Field(() => Specs)
   specs?: Specs;
+
+  @Field({ nullable: true })
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
 
 @ObjectType()

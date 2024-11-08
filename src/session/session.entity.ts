@@ -50,7 +50,7 @@ export class Session {
     this.duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
-  @ManyToOne(() => Device, { eager: true })
+  @ManyToOne(() => Device, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'deviceId' })
   @Field(() => Device, { nullable: true })
   hostDevice: Device;
