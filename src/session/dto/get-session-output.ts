@@ -1,6 +1,6 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 import { Session } from '../session.entity';
-import { Device } from 'src/device/device.entity';
+import { ExtendedDevice } from 'src/device/device.entity';
 
 @ObjectType()
 export class GetSessionOutput extends Session {
@@ -12,7 +12,7 @@ export class GetSessionOutput extends Session {
 }
 
 @ObjectType()
-export class DeviceWithControl extends Device {
+export class DeviceWithControl extends ExtendedDevice {
   @Field(() => Boolean)
   isControlling: boolean;
 }

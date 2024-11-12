@@ -116,7 +116,6 @@ export class Device {
 }
 
 @ObjectType()
-@Entity()
 export class ExtendedDevice extends Device {
   @Field(() => String, { nullable: true })
   status?: DeviceStatus;
