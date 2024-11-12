@@ -10,7 +10,7 @@ import {
   Column,
   BeforeUpdate,
 } from 'typeorm';
-import { Device } from 'src/device/device.entity';
+import { ExtendedDevice } from 'src/device/device.entity';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 
 export type CachedSession = {
@@ -50,16 +50,16 @@ export class Session {
     this.duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
-  @ManyToOne(() => Device, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => ExtendedDevice, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'deviceId' })
-  @Field(() => Device, { nullable: true })
-  hostDevice: Device;
+  @Field(() => ExtendedDevice, { nullable: true })
+  hostDevice: ExtendedDevice;
 
   @Column()
   deviceId: string;
 
-  @ManyToMany(() => Device, { eager: true, nullable: true })
+  @ManyToMany(() => ExtendedDevice, { eager: true, nullable: true })
   @JoinTable()
-  @Field(() => [Device], { nullable: true })
-  watchers?: Device[];
+  @Field(() => [ExtendedDevice], { nullable: true })
+  watchers?: ExtendedDevice[];
 }
