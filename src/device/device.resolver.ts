@@ -71,7 +71,7 @@ export class DeviceResolver {
     roles: ['realm:can_use_remote_connections'],
     mode: RoleMatchingMode.ANY,
   })
-  @Mutation(() => Device)
+  @Mutation(() => ExtendedDevice)
   @Resource('device')
   async createDevice(
     @Args('data') data: CreateDeviceInput,
@@ -96,7 +96,7 @@ export class DeviceResolver {
     roles: ['realm:can_use_remote_connections'],
     mode: RoleMatchingMode.ANY,
   })
-  @Mutation(() => Device)
+  @Mutation(() => ExtendedDevice)
   @Resource('device')
   async updateDevice(
     @Args('id') id: string,
@@ -147,7 +147,7 @@ export class DeviceResolver {
     roles: ['realm:can_use_remote_connections'],
     mode: RoleMatchingMode.ANY,
   })
-  @Mutation(() => Device)
+  @Mutation(() => ExtendedDevice)
   @Resource('device')
   async patchDevice(
     @Args('id') id: string,
